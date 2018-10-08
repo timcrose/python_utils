@@ -67,7 +67,8 @@ def cp(src_paths_list, dest_dir, recursive=False):
     if type(dest_dir) is not str:
         raise ValueError('destination path must be a str')
     mkdir_if_DNE(dest_dir)
-    cp_str_src(src_path, dest_dir, recursive)
+    if type(src_paths_list) is str:
+        cp_str_src(src_paths_list, dest_dir, recursive)
     if not hasattr(src_paths_list, '__file__'):
         raise TypeError('src must be of type str or iterable')
     for src_path in src_paths_list:
