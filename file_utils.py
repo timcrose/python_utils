@@ -62,6 +62,8 @@ def cp_str_src(src_path, dest_dir, recursive, dest_fname):
             shutil.copy(src_path, os.path.join(dest_dir, dest_fname))
         else:
             print('cannot handle src input: ' + src_path + ' , recursive=', recursive)
+            if not os.path.exists(src_path):
+                print('src path: ' + src_path + ' DNE')
     else:
         print('needed str input. Got: ' + src_path + ' , recursive=', recursive)
 
