@@ -52,27 +52,29 @@ def get_lines_of_file(fname, mode='r'):
         lines = f.readlines()
     return lines
 
-def cp_str_src(src_path, dest_dir, recursive):
+def cp_str_src(src_path, dest_dir, recursive, dest_fname):
     if type(src_path) is str:
         if os.path.isdir(src_path) and recursive:
+            rm(dest_dir, recursive)
             shutil.copytree(src_path, dest_dir)
         elif os.path.isfile(src_path):
-            shutil.copy(src_path, dest_dir)
+            mkdir_if_DNE(dest_dir)
+            shutil.copy(src_path, os.path.join(dest_dir, dest_fname))
         else:
             print('cannot handle src input: ' + src_path + ' , recursive=', recursive)
     else:
         print('needed str input. Got: ' + src_path + ' , recursive=', recursive)
 
-def cp(src_paths_list, dest_dir, recursive=False):
+def cp(src_paths_list, dest_dir, recursive=False, dest_fname=''):
     if type(dest_dir) is not str:
         raise ValueError('destination path must be a str')
-    mkdir_if_DNE(dest_dir)
     if type(src_paths_list) is str:
-        cp_str_src(src_paths_list, dest_dir, recursive)
+        cp_str_src(src_paths_list, dest_dir, recursive, dest_fname)
+        return
     if not hasattr(src_paths_list, '__file__'):
-        raise TypeError('src must be of type str or iterable')
+        raise TypeError('src must be of type str or iterable. Got: ' + src_paths_list)
     for src_path in src_paths_list:
-        cp_str_src(src_path, dest_dir, recursive)
+        cp_str_src(src_path, dest_dir, recursive, dest_fname)
 
 def rm(paths, recursive=False):
     if type(paths) is str:
