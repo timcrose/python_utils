@@ -157,9 +157,9 @@ def write_rows_to_csv(path, two_Dimensional_list, mode='w', delimiter=','):
         f = open(path, mode, newline='')
     except:
         #python2
-        if mode == 'a':
+        if mode == 'a' or mode == 'ab':
             mode = 'ab'
-        elif mode == 'w':
+        elif mode == 'w' or mode == 'wb':
             mode = 'wb'
         else:
             raise TypeError('mode invalid. mode you gave was ' + str(mode))
