@@ -9,6 +9,11 @@ import csv, json, os, sys, pickle
 from glob import glob
 import shutil
 
+def output_from_rank(message, rank, mode='a', output_fpath_prefix='output_from_split_rank_'):
+    output_fpath = os.path.join(output_fpath_prefix, str(rank))
+    with open(output_fpath, mode=mode) as f:
+        f.write(message + '\n')
+
 def read_pickle(fname):
     '''
     fname: str
