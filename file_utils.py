@@ -5,9 +5,29 @@ Created on Tue Feb  6 19:16:48 2018
 @author: timcrose
 """
 
-import csv, json, os
+import csv, json, os, sys, pickle
 from glob import glob
 import shutil
+
+def read_pickle(fname):
+    '''
+    fname: str
+        filename of pickle file (must include .pickle ext)
+
+    Return: unpickled object
+
+    Purpose: unpickle a python object that was stored in
+         a .pickle file.
+    '''
+
+    if not fname.endswith('.pickle'):
+        print('filename must end with .pickle. Filename gotten: ' + fname)
+        print('Returning None')
+        return None
+
+    with open(fname, 'rb') as f:
+        python_obj = pickle.load(f)
+    return python_obj
 
 def grep_single_file(search_str, fpath, read_mode, found_lines):
     with open(fpath, read_mode) as f:
@@ -196,3 +216,37 @@ def get_dct_from_json(path, load_type='load'):
             dct = json.loads(dct, f)
 
     return dct
+
+def lock_file(fname):
+    with open(fname, 'w') as f:
+        f.write('locked')
+
+def wait_for_file_to_vanish(fname):
+    #wait until a file is removed by some other process
+    while os.path.exists(fname):
+        #sleep a random amount of time to help prevent clashing (if multiple ranks)
+        time_utils.sleep(random.uniform(0.2, 1.2))
+
+def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_frame=0.05):
+    '''
+    fpath: str
+        path to file to check
+    total_timeout: number
+        total number of seconds before aborting the wait command
+    time_frame: number
+        number of seconds to wait between each check of file size.
+    Purpose: Wait until file exists and the filesize remains constant in
+        a given time frame.
+    '''
+    start_time = time_utils.gtime()
+    while not os.path.exists(fpath):
+        if time_utils.gtime() - start_time > total_timeout:
+            return False
+    fsize = os.path.getsize(fpath)
+    time_utils.sleep(time_frame)
+    while fsize != os.path.getsize(fpath):
+        time_utils.sleep(time_frame)
+        if time_utils.gtime() - start_time > total_timeout:
+            return False
+    return True
+
