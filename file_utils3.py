@@ -12,10 +12,7 @@ import shutil
 def output_from_rank(message_args, rank, mode='a', output_fpath_prefix='output_from_split_rank_'):
     output_fpath = os.path.join(output_fpath_prefix, str(rank))
     with open(output_fpath, mode=mode) as f:
-        try:
-            print(message_args, file=f)
-        except SyntaxError:
-            print >> f, message_args
+          print(message_args, file=f)
 
 def read_pickle(fname):
     '''
@@ -46,7 +43,7 @@ def grep_single_file(search_str, fpath, read_mode, found_lines):
     return found_lines
 
 def grep_dir_recursively(search_str, dir_path, read_mode, found_lines):
-    for sub_path in glob(os.path.join(dir_path, '**')):
+    for sub_path in glob(os.path.join(dir_path, '**'), recursive=True):
         if not os.path.isdir(sub_path):
             found_lines = grep_single_file(search_str, sub_path, read_mode, found_lines)
     return found_lines
@@ -166,36 +163,19 @@ def write_row_to_csv(path, one_dimensional_list, mode='a', delimiter=','):
     if type(one_dimensional_list) != list:
         raise TypeError('row is not type list, cannot write to csv')
 
-    try:
-        with open(path, mode, newline='') as f:
-            csvWriter = csv.writer(f, delimiter=delimiter)
-            csvWriter.writerow(one_dimensional_list)
-    except:#python2
-        if mode == 'a':
-            mode = 'ab'
-        with open(path, mode) as f:
-            csvWriter = csv.writer(f, delimiter=delimiter)
-            csvWriter.writerow(one_dimensional_list)
+    with open(path, mode, newline='') as f:
+        csvWriter = csv.writer(f, delimiter=delimiter)
+        csvWriter.writerow(one_dimensional_list)
         
 def write_rows_to_csv(path, two_Dimensional_list, mode='w', delimiter=','):
     if path[-4:] != '.csv':
         raise TypeError('path must have .csv extension. The path you gave was '  + path)
 
-    try:
-        f = open(path, mode, newline='')
-    except:
-        #python2
-        if mode == 'a' or mode == 'ab':
-            mode = 'ab'
-        elif mode == 'w' or mode == 'wb':
-            mode = 'wb'
-        else:
-            raise TypeError('mode invalid. mode you gave was ' + str(mode))
+    f = open(path, mode, newline='')
 
-        f = open(path, mode)
     csvWriter = csv.writer(f, delimiter=delimiter)
     for row in two_Dimensional_list:
-        if type(row) != list:
+        if type(row) is not list:
             raise TypeError('row is not type list, cannot write to csv. The type of row is ' + str(type(row)))
         csvWriter.writerow(row)
     f.close()

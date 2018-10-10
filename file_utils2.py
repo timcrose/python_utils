@@ -7,15 +7,24 @@ Created on Tue Feb  6 19:16:48 2018
 
 import csv, json, os, sys, pickle
 from glob import glob
-import shutil
+import shutil, fnmatch
 
-def output_from_rank(message_args, rank, mode='a', output_fpath_prefix='output_from_split_rank_'):
+def glob2(start_path, pattern, recursive=True):
+    '''
+    Purpose: recursively get files like recursive glob but for python2
+    '''
+    if not recursive:
+        return glob(os.path.join(start_path, pattern))
+    matches = []
+    for root, dirnames, filenames in os.walk(start_path):
+        for filename in fnmatch.filter(filenames, pattern):
+           matches.append(os.path.join(root, filename))
+    return matches
+
+def output_from_rank(message_args, rank, mode='ab', output_fpath_prefix='output_from_split_rank_'):
     output_fpath = os.path.join(output_fpath_prefix, str(rank))
     with open(output_fpath, mode=mode) as f:
-        try:
-            print(message_args, file=f)
-        except SyntaxError:
-            print >> f, message_args
+          print >> f, message_args
 
 def read_pickle(fname):
     '''
@@ -46,7 +55,7 @@ def grep_single_file(search_str, fpath, read_mode, found_lines):
     return found_lines
 
 def grep_dir_recursively(search_str, dir_path, read_mode, found_lines):
-    for sub_path in glob(os.path.join(dir_path, '**')):
+    for sub_path in glob2(dir_path, '*'):
         if not os.path.isdir(sub_path):
             found_lines = grep_single_file(search_str, sub_path, read_mode, found_lines)
     return found_lines
@@ -159,40 +168,22 @@ def read_csv(path,mode='r'):
 
     return red_csv
     
-def write_row_to_csv(path, one_dimensional_list, mode='a', delimiter=','):
+def write_row_to_csv(path, one_dimensional_list, mode='ab', delimiter=','):
     if path[-4:] != '.csv':
         raise Exception('path must have .csv extension')
 
     if type(one_dimensional_list) != list:
         raise TypeError('row is not type list, cannot write to csv')
 
-    try:
-        with open(path, mode, newline='') as f:
-            csvWriter = csv.writer(f, delimiter=delimiter)
-            csvWriter.writerow(one_dimensional_list)
-    except:#python2
-        if mode == 'a':
-            mode = 'ab'
-        with open(path, mode) as f:
-            csvWriter = csv.writer(f, delimiter=delimiter)
-            csvWriter.writerow(one_dimensional_list)
+    with open(path, mode) as f:
+        csvWriter = csv.writer(f, delimiter=delimiter)
+        csvWriter.writerow(one_dimensional_list)
         
-def write_rows_to_csv(path, two_Dimensional_list, mode='w', delimiter=','):
+def write_rows_to_csv(path, two_Dimensional_list, mode='wb', delimiter=','):
     if path[-4:] != '.csv':
         raise TypeError('path must have .csv extension. The path you gave was '  + path)
 
-    try:
-        f = open(path, mode, newline='')
-    except:
-        #python2
-        if mode == 'a' or mode == 'ab':
-            mode = 'ab'
-        elif mode == 'w' or mode == 'wb':
-            mode = 'wb'
-        else:
-            raise TypeError('mode invalid. mode you gave was ' + str(mode))
-
-        f = open(path, mode)
+    f = open(path, mode)
     csvWriter = csv.writer(f, delimiter=delimiter)
     for row in two_Dimensional_list:
         if type(row) != list:
