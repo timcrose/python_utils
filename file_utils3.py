@@ -10,7 +10,7 @@ from glob import glob
 import shutil
 
 def output_from_rank(message_args, rank, mode='a', output_fpath_prefix='output_from_split_rank_'):
-    output_fpath = os.path.join(output_fpath_prefix, str(rank))
+    output_fpath = output_fpath_prefix + str(rank)
     with open(output_fpath, mode=mode) as f:
           print(message_args, file=f)
 
