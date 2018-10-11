@@ -240,12 +240,10 @@ def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_fram
     start_time = time_utils.gtime()
     while not os.path.exists(fpath):
         if time_utils.gtime() - start_time > total_timeout:
-            return False
+            raise Exception('file ' + fpath + ' still DNE after a total of ' + str(total_timeout) + ' seconds')
     fsize = os.path.getsize(fpath)
     time_utils.sleep(time_frame)
     while fsize != os.path.getsize(fpath):
         time_utils.sleep(time_frame)
         if time_utils.gtime() - start_time > total_timeout:
-            return False
-    return True
-
+            raise Exception('file ' + fpath + ' still not done being written to after a total of ' + str(total_timeout) + ' seconds')
