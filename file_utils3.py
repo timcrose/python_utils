@@ -105,19 +105,19 @@ def cp(src_paths_list, dest_dir, recursive=False, dest_fname=''):
 
 def rm(paths, recursive=False):
     if type(paths) is str:
-        if os.path.exists(paths):
+        if os.path.isdir(paths):
             if recursive:
                 shutil.rmtree(paths)
-            elif os.path.isdir(paths):
+            else:
                 raise ValueError('paths ' + paths + ' is a directory. If you want to '+
                                  'delete all contents of this directory, pass '+
                                  'recursive=True')
-            else:
+        elif os.path.exists(paths):
                 os.remove(paths)
         return
 
-    if type(paths) is not list:
-        raise ValueError('paths must be a string of one path or a list of paths which are strings')
+    if not hasattr(paths, '__iter__'):
+        raise ValueError('paths must be a string of one path or an iterable of paths which are strings')
     for path in paths:
         if type(path) is not str:
             raise ValueError('path must be a string')
