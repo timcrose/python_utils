@@ -9,6 +9,9 @@ from datetime import datetime
 from time import sleep
 from time import mktime
 from time import time as gtime
+from time import ctime
+from time import localtime
+from time import strftime
 
 def get_greg_time_from_time_str(time_str='00:00:00', ds=None, DATE_FMT='%Y-%m-%d', TIME_FMT='%H:%M:%S'):
 
@@ -44,3 +47,8 @@ def wait_til_weekday():
     while weekno >= 5:
         sleep(3666)
         weekno = datetime.today().weekday()
+
+def get_date_time_str_from_greg(greg):
+    return ctime(int(greg))
+def get_time_str_from_greg(greg):
+    return strftime("%H:%M:%S", localtime(greg))
