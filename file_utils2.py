@@ -8,6 +8,7 @@ Created on Tue Feb  6 19:16:48 2018
 import csv, json, os, sys, pickle
 from glob import glob
 import shutil, fnmatch
+import time_utils
 
 def glob2(start_path, pattern, recursive=True):
     '''
