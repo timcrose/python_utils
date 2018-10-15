@@ -78,6 +78,10 @@ def get_lines_of_file(fname, mode='r'):
         lines = f.readlines()
     return lines
 
+def mkdir_if_DNE(path):
+    if not os.path.isdir(path):
+        os.makedirs(path)
+
 def cp_str_src(src_path, dest_dir, dest_fname):
     if type(src_path) is str:
         if os.path.isdir(src_path):
@@ -130,10 +134,6 @@ def mv(src_fpath, dest_fpath):
         raise IOError('Cannot move, destination path needs to be of type str. dest_fpath:', dest_fpath)
     cp(src_fpath, dest_fpath)
     rm(src_fpath)
-
-def mkdir_if_DNE(path):
-    if not os.path.isdir(path):
-        os.makedirs(path)
 
 def read_csv(path,mode='r'):
     if path[-4:] != '.csv':
