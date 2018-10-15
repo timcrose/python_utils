@@ -90,69 +90,58 @@ def get_lines_of_file(fname, mode='r'):
         lines = f.readlines()
     return lines
 
-def cp_str_src(src_path, dest_dir, recursive, dest_fname):
+def cp_str_src(src_path, dest_dir, dest_fname):
     if type(src_path) is str:
-        if os.path.isdir(src_path) and recursive:
-            rm(dest_dir, recursive)
+        if os.path.isdir(src_path):
+            rm(dest_dir)
             shutil.copytree(src_path, dest_dir)
         elif os.path.isfile(src_path):
             mkdir_if_DNE(dest_dir)
             shutil.copy(src_path, os.path.join(dest_dir, dest_fname))
         else:
-            print('cannot handle src input: ' + src_path + ' , recursive=', recursive)
+            print('cannot handle src input. src_path is ', src_path)
             if not os.path.exists(src_path):
                 print('src path: ' + src_path + ' DNE')
     else:
-        print('needed str input. Got: ' + src_path + ' , recursive=', recursive)
+        print('needed str input. src_path: ', src_path)
 
-def cp(src_paths_list, dest_dir, recursive=False, dest_fname=''):
+def cp(src_paths_list, dest_dir, dest_fname=''):
     if type(dest_dir) is not str:
-        raise ValueError('destination path must be a str')
+        raise ValueError('destination path must be a str. dest_dir: ', dest_dir)
     if type(src_paths_list) is str:
-        cp_str_src(src_paths_list, dest_dir, recursive, dest_fname)
+        cp_str_src(src_paths_list, dest_dir, dest_fname)
         return
-    if not hasattr(src_paths_list, '__file__'):
-        raise TypeError('src must be of type str or iterable. Got: ' + src_paths_list)
+    if not hasattr(src_paths_list, '__iter__'):
+        raise TypeError('src must be of type str or iterable. src_paths_list: ', src_paths_list)
     for src_path in src_paths_list:
-        cp_str_src(src_path, dest_dir, recursive, dest_fname)
+        cp_str_src(src_path, dest_dir, dest_fname)
 
-def rm(paths, recursive=False):
+def rm(paths):
     if type(paths) is str:
         if os.path.isdir(paths):
-            if recursive:
-                shutil.rmtree(paths)
-            else:
-                raise ValueError('paths ' + paths + ' is a directory. If you want to '+
-                                 'delete all contents of this directory, pass '+
-                                 'recursive=True')
+            shutil.rmtree(paths)
         elif os.path.exists(paths):
                 os.remove(paths)
         return
 
     if not hasattr(paths, '__iter__'):
-        raise ValueError('paths must be a string of one path or an iterable of paths which are strings')
+        raise ValueError('paths must be a string of one path or an iterable of paths which are strings. paths:', paths)
     for path in paths:
         if type(path) is not str:
-            raise ValueError('path must be a string')
-        path = os.path.abspath(path)
-        if os.path.exists(path):
-            if os.path.isdir(path) and recursive:
-                shutil.rmtree(path)
-            else:
-                os.remove(path)
+            raise ValueError('path must be a string. path:', path)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        elif os.path.exists(path):
+            os.remove(path)
         else:
             print('path ' + path + ' DNE. Skipping.')
 
 def mv(src_fpath, dest_fpath):
     #copy then delete
-    if type(src_fpath) is not str:
-        raise IOError('Cannot move, source path needs to be of type str')
-    cp(src_fpath, dest_fpath, recursive=True)
-    rm(src_fpath, recursive=True)
-
-def mkdir_if_DNE(path):
-    if not os.path.isdir(path):
-        os.mkdir(path)
+    if type(dest_fpath) is not str:
+        raise IOError('Cannot move, destination path needs to be of type str. dest_fpath:', dest_fpath)
+    cp(src_fpath, dest_fpath)
+    rm(src_fpath)
 
 def read_csv(path,mode='r'):
     if path[-4:] != '.csv':
