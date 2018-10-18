@@ -179,11 +179,14 @@ def lock_file(fname):
     with open(fname, 'w') as f:
         f.write('locked')
 
-def wait_for_file_to_vanish(fname):
+def wait_for_file_to_vanish(fname, total_timeout=100000, time_frame=0.05):
+    start_time = time_utils.gtime()
     #wait until a file is removed by some other process
     while os.path.exists(fname):
         #sleep a random amount of time to help prevent clashing (if multiple ranks)
-        time_utils.sleep(random.uniform(0.2, 1.2))
+        time_utils.sleep(random.uniform(time_frame, 24.0 * time_frame))
+        if time_utils.gtime() - start_time > total_timeout:
+            raise Exception('file ' + fname + ' still locked after a total of ' + str(total_timeout) + ' seconds')
 
 def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_frame=0.05):
     '''
