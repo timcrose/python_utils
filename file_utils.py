@@ -7,7 +7,7 @@ Created on Tue Feb  6 19:16:48 2018
 
 import csv, json, os, sys, pickle
 from glob import glob
-import shutil, fnmatch
+import shutil, fnmatch, random
 import time_utils
 import platform
 
