@@ -24,6 +24,14 @@ def get_greg_time_from_time_str(time_str='00:00:00', ds=None, DATE_FMT='%Y-%m-%d
 
     return greg_time
 
+def get_greg_from_mdYHMS(mon, day, yr, hr, minute, sec):
+    fmt = '%m-%d-%Y %H:%M:%S'
+    s = str(mon).zfill(2) + '-'  + str(day).zfill(2) + '-' + str(yr).zfill(4) + ' ' + str(hr).zfill(2) + ':' + str(minute).zfill(2) + ':' + str(int(sec)).zfill(2)
+    dt = datetime.strptime(s, fmt)
+    tt = dt.timetuple()
+    greg_time = mktime(tt)
+    return greg_time
+
 def delay_start(time_of_day_to_start):
     start_time_greg = get_greg_time_from_time_str(time_str=time_of_day_to_start)
 

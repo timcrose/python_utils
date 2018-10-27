@@ -18,3 +18,6 @@ def round_nearest_multiple(number, a, direction='standard'):
         return round(math.ceil(number / a) * a, -int(math.floor(math.log10(a))))
     elif direction == 'standard':
         return round(round(number / a) * a, -int(math.floor(math.log10(a))))
+
+def mean(lst):
+    return sum(lst) / float(len(lst))
