@@ -19,6 +19,19 @@ elif python_version >= 2.0:
 else:
     print('python version below 2.0, potential for some unsupported functions')
 
+def write_pickle(fpath, data):
+    '''
+    fpath: str
+        file path of pickle file (must include .pickle ext)
+    data: python obj
+        object to be pickled
+
+    Purpose: pickle a python object and store in
+         a .pickle file.
+    '''
+    with open(fpath, "wb") as pickle_out:
+        pickle.dump(data, pickle_out)
+
 def read_pickle(fname):
     '''
     fname: str
