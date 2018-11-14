@@ -188,6 +188,20 @@ def get_dct_from_json(path, load_type='load'):
 
     return dct
 
+def write_to_file(fname, str_to_write, mode='w'):
+    '''
+    fname: str
+        path to file including file name
+    str_to_write: str
+        str to write to the file
+    mode: str
+        valid modes include w for overwrite and a for append.
+    
+    Purpose: write a string to a file.
+    '''
+    with open(fname, mode=mode) as f:
+        f.write(str_to_write)
+
 def lock_file(fname):
     with open(fname, 'w') as f:
         f.write('locked')
