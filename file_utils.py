@@ -172,9 +172,9 @@ def write_dct_to_json(path, dct, indent=4, dump_type='dump'):
 
     with open(path, 'w') as f:
         if dump_type == 'dump':
-            json.dump(dct, f, indent=4)
+            json.dump(dct, f, indent=indent)
         elif dump_type == 'dumps':
-            json.dumps(dct, f, indent=4)
+            json.dumps(dct, f, indent=indent)
 
 def get_dct_from_json(path, load_type='load'):
     if path[-5:] != '.json':
