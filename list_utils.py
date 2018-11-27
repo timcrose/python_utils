@@ -1,4 +1,4 @@
-import re
+import re, random
 
 def sorted_nicely(l):
     """ Sorts the given iterable in the way that is expected.
@@ -32,3 +32,15 @@ def indices(lst, val):
         not found in lst, output empty list
     '''
     return [item for i, item in enumerate(lst) if item is val]
+
+def random_index(lst):
+    '''
+    lst: list
+        List
+    
+    return: int
+        random number that could be an index
+
+    Purpose: get a valid random index
+    '''
+    return random.randint(0, len(lst) - 1)
