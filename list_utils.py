@@ -31,7 +31,7 @@ def indices(lst, val):
     Purpose: output indices where the val is found in lst. If val is
         not found in lst, output empty list
     '''
-    return [item for i, item in enumerate(lst) if item is val]
+    return [i for i, item in enumerate(lst) if item is val or item == val]
 
 def random_index(lst):
     '''
