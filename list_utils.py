@@ -43,4 +43,20 @@ def random_index(lst):
 
     Purpose: get a valid random index
     '''
+    if len(lst) == 0:
+        raise ValueError('lst has len 0.')
     return random.randint(0, len(lst) - 1)
+
+def random_value(lst):
+    '''
+    lst: list
+        List
+    
+    return: int
+        random element of lst
+
+    Purpose: return one of the values in lst at random
+    '''
+    if len(lst) == 0:
+        raise ValueError('lst has len 0.')
+    return lst[random_index(lst)]
