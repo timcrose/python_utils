@@ -1,4 +1,4 @@
-import re, random
+import re, random, itertools
 
 def sorted_nicely(l):
     """ Sorts the given iterable in the way that is expected.
@@ -60,3 +60,14 @@ def random_value(lst):
     if len(lst) == 0:
         raise ValueError('lst has len 0.')
     return lst[random_index(lst)]
+
+def flatten_list(lst):
+    '''
+    lst: list
+        List of lists
+
+    return: list
+        1D list which is the flattened list
+    Purpose: Flatten a list of lists
+    '''
+    return list(itertools.chain(*lst))
