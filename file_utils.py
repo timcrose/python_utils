@@ -114,32 +114,38 @@ def cp(src_paths_list, dest_dir, dest_fname=''):
     if type(dest_dir) is not str:
         raise ValueError('destination path must be a str. dest_dir: ', dest_dir)
     if type(src_paths_list) is str:
-        cp_str_src(src_paths_list, dest_dir, dest_fname)
-        return
+        if '*' in src_paths_list:
+            src_paths_list = glob(src_paths_list)
+        else:
+            cp_str_src(src_paths_list, dest_dir, dest_fname)
+            return
     if not hasattr(src_paths_list, '__iter__'):
         raise TypeError('src must be of type str or iterable. src_paths_list: ', src_paths_list)
     for src_path in src_paths_list:
         cp_str_src(src_path, dest_dir, dest_fname)
 
+def rm_str(path):
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+    elif os.path.exists(path):
+        os.remove(path)
+    else:
+        print('path ' + path + ' DNE. Skipping.')
+
 def rm(paths):
     if type(paths) is str:
-        if os.path.isdir(paths):
-            shutil.rmtree(paths)
-        elif os.path.exists(paths):
-                os.remove(paths)
-        return
+        if '*' in paths:
+            paths = glob(paths)
+        else:
+            rm_str(paths)
+            return
 
     if not hasattr(paths, '__iter__'):
         raise ValueError('paths must be a string of one path or an iterable of paths which are strings. paths:', paths)
     for path in paths:
         if type(path) is not str:
             raise ValueError('path must be a string. path:', path)
-        if os.path.isdir(path):
-            shutil.rmtree(path)
-        elif os.path.exists(path):
-            os.remove(path)
-        else:
-            print('path ' + path + ' DNE. Skipping.')
+        rm_str(path)
 
 def mv(src_fpath, dest_fpath, dest_fname=''):
     #copy then delete
@@ -147,6 +153,20 @@ def mv(src_fpath, dest_fpath, dest_fname=''):
         raise IOError('Cannot move, destination path needs to be of type str. dest_fpath:', dest_fpath)
     cp(src_fpath, dest_fpath, dest_fname)
     rm(src_fpath)
+
+def rms(paths):
+    '''
+    safe rm
+    '''
+    trash_path = os.path.join(os.environ('HOME'), 'trash')
+    mkdir_if_DNE(trash_path)
+    if type(paths) is str:
+        mv(paths, trash_path)
+    elif hasattr(paths, '__iter__'):
+        for path in paths:
+            mv(path, trash_path)
+    else:
+        raise ValueError('paths must be a string of one path or an iterable of paths which are strings. paths:', paths)
 
 def read_csv(path,mode='r'):
     if path[-4:] != '.csv':
