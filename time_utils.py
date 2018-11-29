@@ -50,9 +50,10 @@ def wait_til_weekday():
     weekno = datetime.today().weekday()
 
     # check if will be a weekday tmw
-    #while weekno > 3 and weekno < 6:
-    #I believe Monday is 0 and Sunday is 6
-    while weekno >= 5:
+    #Monday is 0 and Sunday is 6
+    #Wait until tmw is a weekday
+    #tmw is a weekday if weekno is 0, 1, 2, 3, 6
+    while weekno == 4 or weekno == 5:
         sleep(3666)
         weekno = datetime.today().weekday()
 
