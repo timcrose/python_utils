@@ -14,7 +14,15 @@ def find_nth_occurrence_in_str(input_str, search_str, n, reverse=False, overlapp
             n -= 1
         return match
 
-def split_str_with_many_delimiters(string, delimiters=['(', ')', '.', ',', '[', ']', '/', '+', '-', '*', '%', '#', ':']):
-    for delim in delimiters:
-         string = string.replace(delim, ' ')
-    print(string.split())
+def split_str_with_many_delimiters(string, delimiters=[' ', '(', ')', '.', ',', '[', ']', '/', '+', '-', '*', '%', '#', ':'], return_delim_indices=False):
+    if return_delim_indices:
+        delim_indicies = []
+        for s, char in enumerate(string):
+            if char in delimiters:
+                string[s] = ' '
+                delim_indicies.append([s, delimiters[delimiters.index(char)])
+        return string.split(), delim_indicies
+    else:
+        for delim in delimiters:
+             string = string.replace(delim, ' ')
+        return string.split()
