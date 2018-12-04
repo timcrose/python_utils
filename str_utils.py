@@ -1,3 +1,5 @@
+
+
 def find_nth_occurrence_in_str(input_str, search_str, n, reverse=False, overlapping=0):
     if reverse:
         match = input_str.rfind(search_str)
@@ -11,3 +13,8 @@ def find_nth_occurrence_in_str(input_str, search_str, n, reverse=False, overlapp
             match = input_str.find(search_str, match + len(search_str) ** overlapping)
             n -= 1
         return match
+
+def split_str_with_many_delimiters(string, delimiters=['(', ')', '.', ',', '[', ']', '/', '+', '-', '*', '%', '#', ':']):
+    for delim in delimiters:
+         string = string.replace(delim, ' ')
+    print(string.split())
