@@ -6,6 +6,7 @@ Created on Sun Apr  1 16:29:48 2018
 """
 
 import math
+from decimal import Decimal, ROUND_HALF_UP, ROUND_HALF_DOWN
 
 def round_nearest_multiple(number, a, direction='standard'):
     '''
@@ -21,3 +22,19 @@ def round_nearest_multiple(number, a, direction='standard'):
 
 def mean(lst):
     return sum(lst) / float(len(lst))
+
+def round(number, num_decimal_places):
+    '''
+    number: number
+        number to round
+    num_decimal_places: number of decimal places to round number to
+    
+    return: number (float)
+        rounded number
+    Purpose: round a number to the specified number of decimal places. Existing 
+        round functions may not round correctly.
+    '''
+    decimal_str = '1.'
+    for decimal_place in range(num_decimal_places):
+        decimal_str += '1'
+    return float(Decimal(str(number)).quantize(Decimal(decimal_str), rounding=ROUND_HALF_UP))

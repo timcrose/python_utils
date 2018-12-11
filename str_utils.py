@@ -1,4 +1,4 @@
-
+import list_utils
 
 def find_nth_occurrence_in_str(input_str, search_str, n, reverse=False, overlapping=0):
     if reverse:
@@ -14,13 +14,82 @@ def find_nth_occurrence_in_str(input_str, search_str, n, reverse=False, overlapp
             n -= 1
         return match
 
+def str_item_insert(string, item, i, after=True):
+    '''
+    string: str
+        string to operate on
+    item: str
+        The string that will be inserted into string
+    i: int
+        the elem index string to do the inserting
+    after: bool
+        True: insert after i
+        False: insert before i
+        Note that if i >= len(string) then T/F causes the
+        same behavior (after)
+
+    return: str
+        the string now with item inserted before/after position i
+    Purpose: Insert item into string before/after position i
+    '''
+    if len(string) == 0:
+        return item
+    if i < 0:
+        i = len(string) + i
+    if after:
+        return string[:i + 1] + item + string[i + 1:]
+    else:
+        return string[:i] + item + string[i:]
+
+
+def str_item_assignment(string, item, i):
+    '''
+    string: str
+        string to operate on
+    item: str
+        string that will replace the ith elem of string
+    i: int
+        the elem index of string to replace with item
+
+    return: str
+        the string now with the ith element replaced by item
+    Purpose: replace the ith character of string with item
+    '''
+    return string[:i] + item + string[i + 1:] 
+
+def multiple_str_item_assignment(string, item_list, i_list):
+    '''
+    string: str
+        string to operate on
+    item_list: list of str
+        strings that will replace the ith elem of string
+    i_list: list of int
+        the elem index of string to replace with item
+
+    return: str
+        the string now with the ith element replaced by item
+        for each i
+    Purpose: replace characters of string with items
+    '''
+    if len(item_list) != len(i_list):
+        raise Exception('len(item_list) != len(i_list)')
+    item_data = [[item_list[j], i_list[j]] for j in range(len(item_list))]
+    item_data = list_utils.sort_list_by_col(item_data, 1)
+    offset = 0
+    for item, i in item_data:
+        if len(item) < 1:
+            raise Exception('len(item) < 1')
+        offset += len(item) - 1
+        string = str_item_assignment(string, item, i + offset)
+    return string
+
 def split_str_with_many_delimiters(string, delimiters=[' ', '(', ')', '.', ',', '[', ']', '/', '+', '-', '*', '%', '#', ':'], return_delim_indices=False):
     if return_delim_indices:
         delim_indicies = []
         for s, char in enumerate(string):
             if char in delimiters:
-                string[s] = ' '
-                delim_indicies.append([s, delimiters[delimiters.index(char)])
+                string = str_item_assignment(string, ' ', s)
+                delim_indicies.append([s, delimiters[delimiters.index(char)]])
         return string.split(), delim_indicies
     else:
         for delim in delimiters:

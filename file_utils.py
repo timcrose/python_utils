@@ -89,6 +89,10 @@ def get_lines_of_file(fname, mode='r'):
         lines = f.readlines()
     return lines
 
+def write_lines_to_file(fpath, lines, mode='w'):
+    with open(fpath, mode) as f:
+        f.writelines(lines)
+
 def mkdir_if_DNE(path):
     if not os.path.isdir(path):
         os.makedirs(path)
