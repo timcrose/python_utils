@@ -10,6 +10,7 @@ from glob import glob
 import shutil, fnmatch, random
 import time_utils
 import platform
+import numpy as np
 
 python_version = float(platform.python_version()[:3])
 if python_version >= 3.0:
@@ -172,7 +173,7 @@ def rms(paths):
     else:
         raise ValueError('paths must be a string of one path or an iterable of paths which are strings. paths:', paths)
 
-def read_csv(path,mode='r'):
+def read_csv(path,mode='r', map_type=None, dtype=None):
     if path[-4:] != '.csv':
         raise Exception('fname must have .csv extension. path:', path)
 
@@ -184,6 +185,14 @@ def read_csv(path,mode='r'):
     with open(path, mode) as f:
         csv_reader = csv.reader(f)
         red_csv.extend(csv_reader)
+
+    if map_type == 'float':
+        red_csv = [list(map(float, row)) for row in red_csv]
+    elif map_type == 'int':
+        red_csv = [list(map(int, row)) for row in red_csv]
+
+    if dtype is not None:
+        red_csv = np.array(red_csv, dtype=dtype)
 
     return red_csv
     
