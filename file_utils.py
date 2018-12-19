@@ -270,3 +270,20 @@ def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_fram
         time_utils.sleep(time_frame)
         if time_utils.gtime() - start_time > total_timeout:
             raise Exception('file ' + fpath + ' still not done being written to after a total of ' + str(total_timeout) + ' seconds')
+
+def fname_from_fpath(fpath, include_ext=False):
+    '''
+    fpath: str
+        path to file
+    include_ext: bool
+        True: return basename
+        False: return basename without extension
+
+    return: str
+        filename with or without extension
+    Purpose: get the file name from the file path
+    '''
+    basename = os.path.basename(fpath)
+    if include_ext:
+        return basename
+    return os.path.splitext(basename)[0]
