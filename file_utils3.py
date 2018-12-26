@@ -28,7 +28,8 @@ def write_row_to_csv(path, one_dimensional_list, mode='a', delimiter=','):
     if type(one_dimensional_list) != list:
         raise TypeError('row is not type list, cannot write to csv. type(one_dimensional_list):', \
               type(one_dimensional_list), 'one_dimensional_list:', one_dimensional_list)
-
+    if 'b' == mode[-1]:
+        mode = mode[:-1]
     with open(path, mode, newline='') as f:
         csvWriter = csv.writer(f, delimiter=delimiter)
         csvWriter.writerow(one_dimensional_list)
