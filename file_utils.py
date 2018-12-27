@@ -236,8 +236,9 @@ def write_to_file(fname, str_to_write, mode='w'):
         f.write(str_to_write)
 
 def lock_file(fname):
-    with open(fname, 'w') as f:
-        f.write('locked')
+    if not os.path.exists(fname):
+        with open(fname, 'w') as f:
+            f.write('locked')
 
 def wait_for_file_to_vanish(fname, total_timeout=100000, time_frame=0.05):
     start_time = time_utils.gtime()
