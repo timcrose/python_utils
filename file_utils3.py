@@ -38,6 +38,8 @@ def write_rows_to_csv(path, two_Dimensional_list, mode='w', delimiter=','):
     if path[-4:] != '.csv':
         raise TypeError('path must have .csv extension. path:', path)
 
+    if 'b' == mode[-1]:
+        mode = mode[:-1]
     f = open(path, mode, newline='')
 
     csvWriter = csv.writer(f, delimiter=delimiter)
