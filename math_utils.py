@@ -40,4 +40,4 @@ def round(number, num_decimal_places):
     return float(Decimal(str(number)).quantize(Decimal(decimal_str), rounding=ROUND_HALF_UP))
 
 def randrange_float(start, stop, step, num_decimal_places=4):
-    return round(random.randint(0, int((stop - start) / step)) * step + start, precision)
+    return round(random.randint(0, int((stop - start) / step)) * step + start, num_decimal_places)
