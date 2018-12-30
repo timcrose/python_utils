@@ -5,7 +5,7 @@ Created on Sun Apr  1 16:29:48 2018
 @author: timcrose
 """
 
-import math
+import math, random
 from decimal import Decimal, ROUND_HALF_UP, ROUND_HALF_DOWN
 
 def round_nearest_multiple(number, a, direction='standard'):
@@ -38,3 +38,6 @@ def round(number, num_decimal_places):
     for decimal_place in range(num_decimal_places):
         decimal_str += '1'
     return float(Decimal(str(number)).quantize(Decimal(decimal_str), rounding=ROUND_HALF_UP))
+
+def randrange_float(start, stop, step, num_decimal_places=4):
+    return round(random.randint(0, int((stop - start) / step)) * step + start, precision)
