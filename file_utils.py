@@ -129,12 +129,12 @@ def cp(src_paths_list, dest_dir, dest_fname=''):
     for src_path in src_paths_list:
         cp_str_src(src_path, dest_dir, dest_fname)
 
-def rm_str(path):
+def rm_str(path, verbose=True):
     if os.path.isdir(path):
         shutil.rmtree(path)
     elif os.path.exists(path):
         os.remove(path)
-    else:
+    elif verbose:
         print('path ' + path + ' DNE. Skipping.')
 
 def rm(paths):
