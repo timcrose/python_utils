@@ -98,12 +98,12 @@ def mkdir_if_DNE(path):
     if not os.path.isdir(path):
         os.makedirs(path)
 
-def cp_str_src(src_path, dest_dir, dest_fname):
+def cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=False, verbose=True):
     if type(src_path) is str:
         src_match_paths = glob(src_path)
         for src_match_path in src_match_paths:
             if os.path.isdir(src_match_path):
-                rm(dest_dir)
+                rm(dest_dir, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
                 shutil.copytree(src_match_path, dest_dir)
             elif os.path.isfile(src_match_path):
                 mkdir_if_DNE(dest_dir)
@@ -115,34 +115,36 @@ def cp_str_src(src_path, dest_dir, dest_fname):
     else:
         print('needed str input. src_path: ', src_path)
 
-def cp(src_paths_list, dest_dir, dest_fname=''):
+def cp(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=True):
     if type(dest_dir) is not str:
         raise ValueError('destination path must be a str. dest_dir: ', dest_dir)
     if type(src_paths_list) is str:
         if '*' in src_paths_list:
             src_paths_list = glob(src_paths_list)
         else:
-            cp_str_src(src_paths_list, dest_dir, dest_fname)
+            cp_str_src(src_paths_list, dest_dir, dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
             return
     if not hasattr(src_paths_list, '__iter__'):
         raise TypeError('src must be of type str or iterable. src_paths_list: ', src_paths_list)
     for src_path in src_paths_list:
-        cp_str_src(src_path, dest_dir, dest_fname)
+        cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
 
-def rm_str(path, verbose=True):
+def rm_str(path, fail_if_cant_rm=False, verbose=True):
     if os.path.isdir(path):
         shutil.rmtree(path)
     elif os.path.exists(path):
         os.remove(path)
+    elif fail_if_cant_rm:
+        raise IOError('cannot rm because path DNE :' + path)
     elif verbose:
         print('path ' + path + ' DNE. Skipping.')
 
-def rm(paths):
+def rm(paths, fail_if_cant_rm=False, verbose=True):
     if type(paths) is str:
         if '*' in paths:
             paths = glob(paths)
         else:
-            rm_str(paths)
+            rm_str(paths, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
             return
 
     if not hasattr(paths, '__iter__'):
@@ -150,26 +152,26 @@ def rm(paths):
     for path in paths:
         if type(path) is not str:
             raise ValueError('path must be a string. path:', path)
-        rm_str(path)
+        rm_str(path, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
 
-def mv(src_fpath, dest_fpath, dest_fname=''):
+def mv(src_fpath, dest_fpath, dest_fname='', fail_if_cant_rm=False, verbose=True):
     #copy then delete
     if type(dest_fpath) is not str:
         raise IOError('Cannot move, destination path needs to be of type str. dest_fpath:', dest_fpath)
-    cp(src_fpath, dest_fpath, dest_fname)
-    rm(src_fpath)
+    cp(src_fpath, dest_fpath, dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
+    rm(src_fpath, fail_if_cant_rm=False, verbose=True)
 
-def rms(paths):
+def rms(paths, fail_if_cant_rm=False, verbose=True):
     '''
     safe rm
     '''
     trash_path = os.path.join(os.environ('HOME'), 'trash')
     mkdir_if_DNE(trash_path)
     if type(paths) is str:
-        mv(paths, trash_path)
+        mv(paths, trash_path, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
     elif hasattr(paths, '__iter__'):
         for path in paths:
-            mv(path, trash_path)
+            mv(path, trash_path, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
     else:
         raise ValueError('paths must be a string of one path or an iterable of paths which are strings. paths:', paths)
 
