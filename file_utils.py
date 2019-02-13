@@ -165,7 +165,7 @@ def rms(paths, fail_if_cant_rm=False, verbose=True):
     '''
     safe rm
     '''
-    trash_path = os.path.join(os.environ('HOME'), 'trash')
+    trash_path = os.path.join(os.environ['HOME'], 'trash')
     mkdir_if_DNE(trash_path)
     if type(paths) is str:
         mv(paths, trash_path, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
