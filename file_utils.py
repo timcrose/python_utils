@@ -53,13 +53,26 @@ def read_pickle(fname):
         python_obj = pickle.load(f)
     return python_obj
 
-def grep_single_file(search_str, fpath, read_mode, found_lines):
+def grep_single_file(search_str, fpath, read_mode, found_lines, return_list=True, search_from_top_to_bottom=True):
     with open(fpath, read_mode) as f:
         lines = f.readlines()
-    for line in lines:
-         if search_str in line:
-             found_lines.append(line)
-    return found_lines
+    if return_list:
+        return [line for line in lines if search_str in line]
+    else:
+        if search_from_top_to_bottom:
+            i = 0
+            while i < len(lines):
+                if search_str in lines[i]:
+                    return True
+                i += 1
+        else:
+            i = len(lines) - 1
+            while i > -1:
+                if search_str in lines[i]:
+                    return True
+                i -= 1
+    return False
+            
 
 def grep_str(search_str, path, read_mode, found_lines):
     if type(path) is str:
