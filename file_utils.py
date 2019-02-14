@@ -74,26 +74,37 @@ def grep_single_file(search_str, fpath, read_mode, found_lines, return_list=True
     return False
             
 
-def grep_str(search_str, path, read_mode, found_lines):
+def grep_str(search_str, path, read_mode, found_lines, return_list=True, search_from_top_to_bottom=True):
     if type(path) is str:
         if os.path.isdir(path):
-            found_lines = grep_dir_recursively(search_str, path, read_mode, found_lines)
+            found_result = grep_dir_recursively(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom)
         elif os.path.isfile(path):
-            found_lines = grep_single_file(search_str, path, read_mode, found_lines)
+            found_result = grep_single_file(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom)
         else:
             print('path DNE: ', path)
     else:
         print('cannot handle non-string path: ', path)
-    return found_lines
+    if return_list:
+        return found_lines + found_result
+    else:
+        return found_result
 
-def grep(search_str, paths, read_mode='r'):
+def grep(search_str, paths, read_mode='r', return_list=True, search_from_top_to_bottom=True):
     found_lines = []
     if type(paths) is str:
         path = paths
-        found_lines = grep_str(search_str, path, read_mode, found_lines)
+        found_result = grep_str(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom)
+        if return_list:
+            found_lines += found_result
+        else:
+            found_lines = found_result
     elif hasattr(paths, '__iter__'):
         for path in paths:
-            found_lines = grep_str(search_str, path, read_mode, found_lines)
+            found_result = grep_str(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom)
+            if return_list:
+                found_lines += found_result
+            elif found_result:
+                return True
     else:
         print('could not interpret path as str or iterable. paths: ', paths)
     return found_lines

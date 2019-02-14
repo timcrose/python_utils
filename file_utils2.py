@@ -27,11 +27,19 @@ def output_from_rank(message_args, rank, mode='ab', output_fpath_prefix='output_
     with open(output_fpath, mode=mode) as f:
           print >> f, message_args
 
-def grep_dir_recursively(search_str, dir_path, read_mode, found_lines):
+def grep_dir_recursively(search_str, dir_path, read_mode, found_lines, return_list=True, search_from_top_to_bottom=True):
+    from file_utils import grep_single_file
     for sub_path in glob2(dir_path, '*'):
         if not os.path.isdir(sub_path):
-            found_lines = grep_single_file(search_str, sub_path, read_mode, found_lines)
-    return found_lines
+            found_result = grep_single_file(search_str, sub_path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom)
+            if return_list:
+                found_lines += found_result
+            elif found_result:
+                return True
+    if return_list:
+        return found_lines
+    else:
+        return False
 
 def write_row_to_csv(path, one_dimensional_list, mode='ab', delimiter=','):
     if path[-4:] != '.csv':
