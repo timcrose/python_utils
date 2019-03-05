@@ -74,3 +74,21 @@ def flatten_list(lst):
 
 def sort_list_by_col(lst, col, reverse=False):
     return sorted(lst,key=lambda l:l[col], reverse=reverse)
+
+
+def multi_delete(list_, indices_to_delete):
+    '''
+    list_: iterable
+        list or iterable
+    indices_to_delete: iterable
+        indices of list_ to delete from list_
+    
+    return: list
+       list of entries in iterable but now with indices_to_delete deleted
+    Purpose: delete many indices from an iterable at once to avoid 
+        clashes of indices changing as elements are deleted
+    '''
+    indexes = sorted(list(indices_to_delete), reverse=True)
+    for index in indexes:
+        del list_[index]
+    return list_
