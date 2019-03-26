@@ -92,3 +92,50 @@ def multi_delete(list_, indices_to_delete):
     for index in indexes:
         del list_[index]
     return list_
+
+
+def randomsubset_not_in_other_set(n_choose, subset_to_avoid, total_set):
+    '''
+    n_choose: int
+        number of indices to choose
+
+    subset_to_avoid: iterable
+        set of indices that you don't want to include in your subset
+
+    total_set: iterable or None
+        The set of indices to pick from. If None, then
+
+    Return: np array, shape: ,n_choose
+        A list of indices to include in the subset.
+
+    Purpose: Determine a random subset of the entire population of indices
+        (total_set) to include
+       in a subset.
+    '''
+    if type(subset_to_avoid) is not set:
+        subset_to_avoid = set(subset_to_avoid)
+    if type(total_set) is not set:
+        total_set = set(total_set)
+
+    valid_set_to_choose_from = total_set.difference(subset_to_avoid)
+    return np.array(random.sample(valid_set_to_choose_from, n_choose))
+
+
+def sort_by_col(data, col):
+    '''
+    data: numpy array, shape (at least one column)
+        array to sort
+
+    col: int
+        column index to sort
+
+    return: the data sorted by the specified column
+
+    purpose: Sort data by the specified column
+    '''
+    try:
+        sorted_data = data[np.argsort(data[:,col])]
+    except:
+        return None
+    return sorted_data
+
