@@ -154,11 +154,23 @@ def cp(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=T
 
 def rm_str(path, fail_if_cant_rm=False, verbose=True):
     if os.path.isdir(path):
-        shutil.rmtree(path)
+        try:
+            shutil.rmtree(path)
+        except OSError:
+            if not fail_if_cant_rm:
+                print('path ' + path + ' DNE. Skipping.')
+            else:
+                raise OSError('path ' + path + ' DNE unexpectedly')
     elif os.path.exists(path):
-        os.remove(path)
+        try:
+            os.remove(path)
+        except OSError:
+            if not fail_if_cant_rm:
+                print('path ' + path + ' DNE. Skipping.')
+            else:
+                raise OSError('path ' + path + ' DNE unexpectedly')
     elif fail_if_cant_rm:
-        raise IOError('cannot rm because path DNE :' + path)
+        raise OSError('cannot rm because path DNE :' + path)
     elif verbose:
         print('path ' + path + ' DNE. Skipping.')
 
