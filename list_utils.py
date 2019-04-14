@@ -1,4 +1,5 @@
 import re, random, itertools
+import numpy as np
 
 def sorted_nicely(l):
     """ Sorts the given iterable in the way that is expected.
@@ -74,6 +75,74 @@ def flatten_list(lst):
 
 def sort_list_by_col(lst, col, reverse=False):
     return sorted(lst,key=lambda l:l[col], reverse=reverse)
+
+def multi_insert(list_, indices_to_insert, data_to_insert=None, direction='left'):
+    '''
+    list_: list
+        parent list which will get items inserted into it by this function
+    indices_to_insert: iterable
+        indices of list_ to insert into (to the direction specified)
+    data_to_insert: iterable or None
+        list of entries to insert corresponding to the order specified in
+        indices_to_insert. If None, then use the data at indices_to_insert in list_
+        to fill.
+    direction: str
+        'left': If index to insert is 0, then the new datum will be in position
+        0 in the final list.
+        'right': If index to insert is 0, then the new datum will be in position
+        1 in the final list.
+    
+    return: list
+       list of entries in iterable but now with data_to_insert inserted
+    Purpose: insert many indices from an iterable at once to avoid 
+        clashes of indices changing as elements are added
+    '''
+    if data_to_insert is None:
+        data_to_insert = np.array(list_)[indices_to_insert]
+    assert(len(data_to_insert) == len(indices_to_insert))
+    acc = 0
+    if direction == 'left':
+        for i in range(len(data_to_insert)):
+            list_.insert(indices_to_insert[i] + acc, data_to_insert[i])
+            acc += 1
+    elif direction == 'right':
+        for i in range(len(data_to_insert)):
+            list_.insert(indices_to_insert[i] + acc + 1, data_to_insert[i])
+            acc += 1
+    else:
+        raise Exception('only "left" or "right" are acceptable arguments for "direction".')
+    return list_
+
+
+def fill_missing_data_evenly(list_, expected_len, direction='left'):
+    '''
+    list_: list
+        parent list which will get items inserted into it by this function
+    expected_len: int
+        length you want your list to contain.
+    direction: str
+        'left': If index to insert is 0, then the new datum will be in position
+        0 in the final list.
+        'right': If index to insert is 0, then the new datum will be in position
+        1 in the final list.
+    
+    return: list
+       list of entries in iterable but now with filled in evenly
+    Purpose: An example of when to use this function is when data is supposed to 
+        be gathered every second from the internet, but the internet connection is
+        spotty and so only 90% of the data was collected. You'd like to fill in the
+        missing values to end up with 100% of the data points, but concatenating
+        them all to the end doesn't make much sense. Instead, insert data as evenly
+        as possible (using the nearest known data value for each inserted point.)
+    '''
+    raw_len = len(list_)
+    additional_num_points_needed = expected_len - raw_len
+    #Divide the list up into additional_num_points_needed partitions and insert
+    # a point (equal to its neighbor) in the center of each partition
+    partitions = [0] + [(i + 1) * additional_num_points_needed for i in range(additional_num_points_needed - 1)] + [raw_len - 1]
+    insertion_positions = [int(round((partitions[i + 1] - partitions[i]) / 2.0)) + partitions[i] for i in range(len(partitions) - 1)]
+    filled_list = multi_insert(list_, insertion_positions, direction=direction)
+    return filled_list
 
 
 def multi_delete(list_, indices_to_delete):
