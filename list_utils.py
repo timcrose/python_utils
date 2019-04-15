@@ -97,6 +97,7 @@ def multi_insert(list_, indices_to_insert, data_to_insert=None, direction='left'
     Purpose: insert many indices from an iterable at once to avoid 
         clashes of indices changing as elements are added
     '''
+    list_ = list(list_)
     if data_to_insert is None:
         data_to_insert = np.array(list_)[indices_to_insert]
     assert(len(data_to_insert) == len(indices_to_insert))
@@ -137,11 +138,14 @@ def fill_missing_data_evenly(list_, expected_len, direction='left'):
     '''
     raw_len = len(list_)
     additional_num_points_needed = expected_len - raw_len
+    if additional_num_points_needed <= 0:
+        return list_
+    partition_size = float(raw_len) / float(additional_num_points_needed)
     #Divide the list up into additional_num_points_needed partitions and insert
     # a point (equal to its neighbor) in the center of each partition
-    partitions = [0] + [(i + 1) * additional_num_points_needed for i in range(additional_num_points_needed - 1)] + [raw_len - 1]
-    insertion_positions = [int(round((partitions[i + 1] - partitions[i]) / 2.0)) + partitions[i] for i in range(len(partitions) - 1)]
-    filled_list = multi_insert(list_, insertion_positions, direction=direction)
+    partitions = [0] + [(i + 1) * partition_size for i in range(additional_num_points_needed)]
+    indices_to_insert = [int(round((partitions[i + 1] - partitions[i]) / 2.0) + partitions[i]) for i in range(len(partitions) - 1)]
+    filled_list = multi_insert(list_, indices_to_insert, direction=direction)
     return filled_list
 
 
