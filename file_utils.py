@@ -164,7 +164,7 @@ def rm_str(path, fail_if_cant_rm=False, verbose=True):
     elif os.path.exists(path):
         try:
             os.remove(path)
-        except OSError:
+        except:
             if not fail_if_cant_rm:
                 print('path ' + path + ' DNE. Skipping.')
             else:
