@@ -71,7 +71,7 @@ def flatten_list(lst):
         1D list which is the flattened list
     Purpose: Flatten a list of lists
     '''
-    return list(itertools.chain(*lst))
+    return list(itertools.chain.from_iterable(lst))
 
 def sort_list_by_col(lst, col, reverse=False):
     return sorted(lst,key=lambda l:l[col], reverse=reverse)
