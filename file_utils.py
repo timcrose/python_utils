@@ -85,15 +85,23 @@ def grep_str(search_str, path, read_mode, found_lines, return_list=True, search_
         elif os.path.isfile(path):
             found_result = grep_single_file(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom)
         else:
-            print('path DNE: ', path)
-    else:
+            if not fail_if_DNE:
+                if verbose:
+                    print('path DNE: ', path)
+                if return_list:
+                    return []
+                else:
+                    return False
+            else:
+                raise FileNotFoundError('path: ' + path + ' DNE')
+    elif verbose:
         print('cannot handle non-string path: ', path)
     if return_list:
         return found_lines + found_result
     else:
         return found_result
 
-def grep(search_str, paths, read_mode='r', return_list=True, search_from_top_to_bottom=True):
+def grep(search_str, paths, read_mode='r', return_list=True, search_from_top_to_bottom=True, fail_if_DNE=False, verbose=False):
     found_lines = []
     if type(paths) is str:
         path = paths
@@ -109,7 +117,7 @@ def grep(search_str, paths, read_mode='r', return_list=True, search_from_top_to_
                 found_lines += found_result
             elif found_result:
                 return True
-    else:
+    elif verbose:
         print('could not interpret path as str or iterable. paths: ', paths)
     return found_lines
 
