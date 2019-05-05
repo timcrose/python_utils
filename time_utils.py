@@ -46,14 +46,24 @@ def delay_start(time_of_day_to_start):
 def get_now_MM_DD_YYYY():
     return str(datetime.now().month) + '_' + str(datetime.now().day) + '_' + str(datetime.now().year)
 
-def wait_til_weekday():
+def wait_til_weekday(time_of_day_to_start='09:15:00'):
     weekno = datetime.today().weekday()
+    weekno_original = datetime.today().weekday()
+
+    if weeno_original == 4:
+        start_time_greg = get_greg_time_from_time_str(time_str=time_of_day_to_start)
+        if gtime() < start_time_greg:
+            #trying to start today
+            return
 
     # check if will be a weekday tmw
     #Monday is 0 and Sunday is 6
-    #Wait until tmw is a weekday
+    #Wait until today and tmw is a weekday
+    #today is a weekday if weekno is 0, 1, 2, 3, 4
     #tmw is a weekday if weekno is 0, 1, 2, 3, 6
-    while weekno == 4 or weekno == 5:
+    #So today is a weekday and tmw is a weekday if weekno is 0, 1, 2, 3
+    #But if we started the program on Friday morning (before the requested start time), then we should also allow it to exit the loop
+    while weekno not in [0, 1, 2, 3]:
         sleep(3666)
         weekno = datetime.today().weekday()
 
