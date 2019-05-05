@@ -6,6 +6,7 @@ Created on Tue Feb  6 19:26:58 2018
 """
 
 from datetime import datetime
+from datetime import date
 from time import sleep
 from time import mktime
 from time import time as gtime
@@ -71,3 +72,17 @@ def get_date_time_str_from_greg(greg):
     return ctime(int(greg))
 def get_time_str_from_greg(greg):
     return strftime("%H:%M:%S", localtime(greg))
+
+def day_of_week_from_date_str(date_str, delim='_'):
+    '''
+    date_str: str
+        must be of format month_day_year. e.g. 12_20_2018 (or other delimiter)
+    delim: delimiter of passed input string. See date_str above
+    
+    return:
+    day-of-the-week number 0 - 6 where 0 is Monday, 6 is Sunday
+    '''
+    month, day, year = [int(i) for i in date_str.split(delim)]
+    born = date(year, month, day)
+    #return born.strftime('%A') Day name like "Sunday"
+    return born.weekday()
