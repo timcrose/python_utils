@@ -51,7 +51,7 @@ def wait_til_weekday(time_of_day_to_start='09:15:00'):
     weekno = datetime.today().weekday()
     weekno_original = datetime.today().weekday()
 
-    if weeno_original == 4:
+    if weekno_original == 4:
         start_time_greg = get_greg_time_from_time_str(time_str=time_of_day_to_start)
         if gtime() < start_time_greg:
             #trying to start today
