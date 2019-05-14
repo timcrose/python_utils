@@ -78,7 +78,7 @@ def grep_single_file(search_str, fpath, read_mode, found_lines, return_list=True
     return False
             
 
-def grep_str(search_str, path, read_mode, found_lines, return_list=True, search_from_top_to_bottom=True):
+def grep_str(search_str, path, read_mode, found_lines, return_list=True, search_from_top_to_bottom=True, fail_if_DNE=False, verbose=False):
     if type(path) is str:
         if os.path.isdir(path):
             found_result = grep_dir_recursively(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom)
@@ -105,14 +105,14 @@ def grep(search_str, paths, read_mode='r', return_list=True, search_from_top_to_
     found_lines = []
     if type(paths) is str:
         path = paths
-        found_result = grep_str(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom)
+        found_result = grep_str(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom, fail_if_DNE=fail_if_DNE, verbose=verbose)
         if return_list:
             found_lines += found_result
         else:
             found_lines = found_result
     elif hasattr(paths, '__iter__'):
         for path in paths:
-            found_result = grep_str(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom)
+            found_result = grep_str(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom, fail_if_DNE=fail_if_DNE, verbose=verbose)
             if return_list:
                 found_lines += found_result
             elif found_result:
