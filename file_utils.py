@@ -129,12 +129,15 @@ def mkdir_if_DNE(path):
     if not os.path.isdir(path):
         os.makedirs(path)
 
-def cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=False, verbose=True):
+def cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=False, verbose=True, replace_dest_dir=True):
     if type(src_path) is str:
         src_match_paths = glob(src_path)
         for src_match_path in src_match_paths:
             if os.path.isdir(src_match_path):
-                rm(dest_dir, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
+                if replace_dest_dir:
+                    rm(dest_dir, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
+                else:
+                    dest_dir = os.path.join(dest_dir, os.path.basename(src_match_path))
                 shutil.copytree(src_match_path, dest_dir)
             elif os.path.isfile(src_match_path):
                 mkdir_if_DNE(dest_dir)
@@ -146,19 +149,19 @@ def cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=False, verbose=Tr
     else:
         print('needed str input. src_path: ', src_path)
 
-def cp(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=True):
+def cp(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=True, replace_dest_dir=True):
     if type(dest_dir) is not str:
         raise ValueError('destination path must be a str. dest_dir: ', dest_dir)
     if type(src_paths_list) is str:
         if '*' in src_paths_list:
             src_paths_list = glob(src_paths_list)
         else:
-            cp_str_src(src_paths_list, dest_dir, dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
+            cp_str_src(src_paths_list, dest_dir, dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose, replace_dest_dir=replace_dest_dir)
             return
     if not hasattr(src_paths_list, '__iter__'):
         raise TypeError('src must be of type str or iterable. src_paths_list: ', src_paths_list)
     for src_path in src_paths_list:
-        cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
+        cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose, replace_dest_dir=replace_dest_dir)
 
 def rm_str(path, fail_if_cant_rm=False, verbose=True):
     if os.path.isdir(path):
@@ -197,11 +200,11 @@ def rm(paths, fail_if_cant_rm=False, verbose=True):
             raise ValueError('path must be a string. path:', path)
         rm_str(path, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
 
-def mv(src_fpath, dest_fpath, dest_fname='', fail_if_cant_rm=False, verbose=True):
+def mv(src_fpath, dest_fpath, dest_fname='', fail_if_cant_rm=False, verbose=True, replace_dest_dir=True):
     #copy then delete
     if type(dest_fpath) is not str:
         raise IOError('Cannot move, destination path needs to be of type str. dest_fpath:', dest_fpath)
-    cp(src_fpath, dest_fpath, dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
+    cp(src_fpath, dest_fpath, dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose, replace_dest_dir=replace_dest_dir)
     rm(src_fpath, fail_if_cant_rm=False, verbose=True)
 
 def rms(paths, fail_if_cant_rm=False, verbose=True):
