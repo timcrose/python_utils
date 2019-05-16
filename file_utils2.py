@@ -54,8 +54,6 @@ def write_row_to_csv(path, one_dimensional_list, mode='ab', delimiter=','):
         csvWriter.writerow(one_dimensional_list)
         
 def write_rows_to_csv(path, two_Dimensional_list, mode='wb', delimiter=','):
-    if path[-4:] != '.csv':
-        raise TypeError('path must have .csv extension. path:', path)
 
     f = open(path, mode)
     csvWriter = csv.writer(f, delimiter=delimiter)
