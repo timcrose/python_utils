@@ -47,7 +47,17 @@ def delay_start(time_of_day_to_start):
 def get_now_MM_DD_YYYY():
     return str(datetime.now().month) + '_' + str(datetime.now().day) + '_' + str(datetime.now().year)
 
-def wait_til_weekday(time_of_day_to_start='09:15:00'):
+
+def wait_til_weekday(time_of_day_to_start='09:00:00'):
+    weekno = datetime.today().weekday()
+
+    #Monday is 0 and Sunday is 6
+    while not ((weekno in range(5)) and gtime() < get_greg_time_from_time_str(time_str=time_of_day_to_start)):
+        sleep(3666)
+        weekno = datetime.today().weekday()
+
+
+def wait_til_weekday_old(time_of_day_to_start='09:15:00'):
     weekno = datetime.today().weekday()
     weekno_original = datetime.today().weekday()
 
@@ -67,6 +77,7 @@ def wait_til_weekday(time_of_day_to_start='09:15:00'):
     while weekno not in [0, 1, 2, 3]:
         sleep(3666)
         weekno = datetime.today().weekday()
+
 
 def get_date_time_str_from_greg(greg):
     return ctime(int(greg))
