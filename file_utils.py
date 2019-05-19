@@ -121,6 +121,11 @@ def grep(search_str, paths, read_mode='r', return_list=True, search_from_top_to_
         print('could not interpret path as str or iterable. paths: ', paths)
     return found_lines
 
+def read_file(fpath, mode='r'):
+    with open(fpath, mode) as f:
+        file_contents = f.read()
+    return file_contents
+
 def write_lines_to_file(fpath, lines, mode='w'):
     with open(fpath, mode) as f:
         f.writelines(lines)
