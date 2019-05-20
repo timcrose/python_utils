@@ -71,17 +71,37 @@ def multiple_str_item_assignment(string, item_list, i_list):
         for each i
     Purpose: replace characters of string with items
     '''
-    if len(item_list) != len(i_list):
-        raise Exception('len(item_list) != len(i_list)')
+    assert(len(item_list) == len(i_list))
     item_data = [[item_list[j], i_list[j]] for j in range(len(item_list))]
     item_data = list_utils.sort_list_by_col(item_data, 1)
     offset = 0
     for item, i in item_data:
-        if len(item) < 1:
-            raise Exception('len(item) < 1')
-        offset += len(item) - 1
+        if len(item) >= 1:
+            offset += len(item) - 1
         string = str_item_assignment(string, item, i + offset)
+        if len(item) < 1:
+            offset -= 1
     return string
+
+
+def delete_items_from_str_by_idx(string, i_list):
+    '''
+    string: str
+        string to operate on
+    i_list: list of int
+        the elem index of string to delete
+
+    return: str
+        the string now with the ith element deleted
+    Purpose: Deleted characters of string at positions in given i_list
+    '''
+    i_list = list(i_list)
+    for i in i_list:
+        assert(type(i) is int)
+    item_list = ['' for i in i_list]
+    modified_str = multiple_str_item_assignment(string, item_list, i_list)   
+    return modified_str
+
 
 def split_str_with_many_delimiters(string, delimiters=[' ', '(', ')', '.', ',', '[', ']', '/', '+', '-', '*', '%', '#', ':'], return_delim_indices=False):
     if return_delim_indices:
