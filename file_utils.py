@@ -344,3 +344,40 @@ def fname_from_fpath(fpath, include_ext=False):
     if include_ext:
         return basename
     return os.path.splitext(basename)[0]
+
+
+def replace_line_in_file(search_str, replacement_line, fpath, num_of_occurrences=-1, search_from_top_to_bottom=True):
+    '''
+    search_str: str
+        This string is searched for in the file as a substring of a line in that file.
+        This line on which this string is found will be replaced by replacement_line.
+    replacement_line: str
+        The line to replace the line that search_str was found on.
+    fpath: str
+        file path to search and do the replacing on
+    num_of_occurrences: int
+        The first num_of_occurrences lines containing search_str will be replaced with replacement_line (in
+        the direction specified by search_from_top_to_bottom). If num_of_occurrences == -1 then all lines
+        containing search_str will be replaced with replacement_line.
+    search_from_top_to_bottom: bool
+        True: Iterate through the lines sequentially
+        False: Iterate through the lines in reverse order
+
+    Return: None
+
+    Purpose: Find a line in a specified file that contains a search string, then replace
+        that line with replacement_line.
+
+    Notes: Put a newline character at the end of your replacement_line string if you wish one to be there.
+    '''
+    lines = get_lines_of_file(fpath)
+    if not search_from_top_to_bottom:
+        lines.reverse()
+    num_occurrences = 0
+    for i,line in enumerate(lines):
+        if num_of_occurrences != -1 and num_occurrences >= num_of_occurrences:
+            break
+        if search_str in line:
+            lines[i] = replacement_line
+            num_occurrences += 1
+    write_lines_to_file(fpath, lines, mode='w')
