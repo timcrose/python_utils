@@ -7,12 +7,14 @@ Created on Tue Feb  6 19:26:58 2018
 
 from datetime import datetime
 from datetime import date
+from datetime import timedelta
 from time import sleep
 from time import mktime
 from time import time as gtime
 from time import ctime
 from time import localtime
 from time import strftime
+from time import strptime
 
 def get_greg_time_from_time_str(time_str='00:00:00', ds=None, DATE_FMT='%Y-%m-%d', TIME_FMT='%H:%M:%S'):
 
@@ -24,6 +26,11 @@ def get_greg_time_from_time_str(time_str='00:00:00', ds=None, DATE_FMT='%Y-%m-%d
     greg_time = float(mktime(dtt.timetuple()))
 
     return greg_time
+
+def get_secs_from_time_str(time_str='00:00:00', TIME_FMT='%H:%M:%S'):
+    struct_time = strptime(time_str, TIME_FMT)
+    secs = struct_time.tm_hour * 3600.0 + struct_time.tm_min * 60.0 + float(struct_time.tm_sec)
+
 
 def get_greg_from_mdYHMS(mon, day, yr, hr, minute, sec):
     fmt = '%m-%d-%Y %H:%M:%S'
