@@ -30,7 +30,7 @@ def get_greg_time_from_time_str(time_str='00:00:00', ds=None, DATE_FMT='%Y-%m-%d
 def get_secs_from_time_str(time_str='00:00:00', TIME_FMT='%H:%M:%S'):
     struct_time = strptime(time_str, TIME_FMT)
     secs = struct_time.tm_hour * 3600.0 + struct_time.tm_min * 60.0 + float(struct_time.tm_sec)
-
+    return secs
 
 def get_greg_from_mdYHMS(mon, day, yr, hr, minute, sec):
     fmt = '%m-%d-%Y %H:%M:%S'
