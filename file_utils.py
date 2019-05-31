@@ -58,68 +58,55 @@ def get_lines_of_file(fname, mode='r'):
         lines = f.readlines()
     return lines
 
-def grep_single_file(search_str, fpath, read_mode, found_lines, return_list=True, search_from_top_to_bottom=True):
+def grep_single_file(search_str, fpath, read_mode):
     lines = get_lines_of_file(fpath, mode=read_mode)
-    if return_list:
-        return [line for line in lines if search_str in line]
-    else:
-        if search_from_top_to_bottom:
-            i = 0
-            while i < len(lines):
-                if search_str in lines[i]:
-                    return True
-                i += 1
-        else:
-            i = len(lines) - 1
-            while i > -1:
-                if search_str in lines[i]:
-                    return True
-                i -= 1
-    return False
+    found_result = [line for line in lines if search_str in line]
+    found_result_line_nums = [i for i,line in enumerate(lines) if search_str in line]
+    found_result_fpaths = [fpath] * len(found_result)
+    return found_result, found_result_line_nums, found_result_fpaths
             
 
-def grep_str(search_str, path, read_mode, found_lines, return_list=True, search_from_top_to_bottom=True, fail_if_DNE=False, verbose=False):
+def grep_str(search_str, path, read_mode, fail_if_DNE=False, verbose=False):
     if type(path) is str:
         if os.path.isdir(path):
-            found_result = grep_dir_recursively(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom)
+            return grep_dir_recursively(search_str, path, read_mode)
         elif os.path.isfile(path):
-            found_result = grep_single_file(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom)
-        else:
-            if not fail_if_DNE:
-                if verbose:
-                    print('path DNE: ', path)
-                if return_list:
-                    return []
-                else:
-                    return False
-            else:
-                raise FileNotFoundError('path: ' + path + ' DNE')
-    elif verbose:
-        print('cannot handle non-string path: ', path)
-    if return_list:
-        return found_lines + found_result
+            return grep_single_file(search_str, path, read_mode)
+        
+    if not fail_if_DNE:
+        if verbose:
+            print('path DNE: ', path)
+        return [], [], []
     else:
-        return found_result
+        raise FileNotFoundError('path DNE: ', path)
 
-def grep(search_str, paths, read_mode='r', return_list=True, search_from_top_to_bottom=True, fail_if_DNE=False, verbose=False):
+def grep(search_str, paths, read_mode='r', fail_if_DNE=False, verbose=False, return_line_nums=False, return_fpaths=False):
     found_lines = []
+    found_line_nums = []
+    found_fpaths = []
     if type(paths) is str:
-        path = paths
-        found_result = grep_str(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom, fail_if_DNE=fail_if_DNE, verbose=verbose)
-        if return_list:
-            found_lines += found_result
-        else:
-            found_lines = found_result
-    elif hasattr(paths, '__iter__'):
+        paths = [paths]
+
+    if hasattr(paths, '__iter__'):
         for path in paths:
-            found_result = grep_str(search_str, path, read_mode, found_lines, return_list=return_list, search_from_top_to_bottom=search_from_top_to_bottom, fail_if_DNE=fail_if_DNE, verbose=verbose)
-            if return_list:
-                found_lines += found_result
-            elif found_result:
-                return True
-    elif verbose:
-        print('could not interpret path as str or iterable. paths: ', paths)
-    return found_lines
+            found_result, found_result_line_nums, found_result_fpaths = grep_str(search_str, path, read_mode, fail_if_DNE=fail_if_DNE, verbose=verbose)
+            found_lines += found_result
+            found_line_nums += found_result_line_nums
+            found_fpaths += found_result_fpaths
+    elif not fail_if_DNE:
+        if verbose:
+            print('could not interpret path as str or iterable. paths: ', paths)
+    else:
+        raise FileNotFoundError('could not interpret path as str or iterable. paths: ', paths)
+
+    if return_line_nums and return_fpaths:
+        return found_lines, found_line_nums, found_fpaths
+    elif return_line_nums and not return_fpaths:
+        return found_lines, found_line_nums
+    elif not return_line_nums and return_fpaths:
+        return found_lines, found_fpaths
+    else:
+        return found_lines
 
 def read_file(fpath, mode='r'):
     with open(fpath, mode) as f:

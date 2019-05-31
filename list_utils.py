@@ -211,4 +211,3 @@ def sort_by_col(data, col):
     except:
         return None
     return sorted_data
-
