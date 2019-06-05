@@ -104,3 +104,13 @@ def day_of_week_from_date_str(date_str, delim='_'):
     born = date(year, month, day)
     #return born.strftime('%A') Day name like "Sunday"
     return born.weekday()
+
+def get_date_str_from_today(delimiter='_'):
+    '''
+    month day year format
+    '''
+    month = str(datetime.today().month)
+    dy = str(datetime.today().day)
+    year = str(datetime.today().year)
+    date_str = month + delimiter + dy + delimiter + year
+    return date_str
