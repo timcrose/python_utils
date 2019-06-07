@@ -8,15 +8,15 @@ Created on Tue Feb  6 19:16:48 2018
 import csv, json, os, sys, pickle
 from glob import glob
 import shutil, fnmatch, random
-import time_utils
+from python_utils import time_utils
 import platform
 import numpy as np
 
 python_version = float(platform.python_version()[:3])
 if python_version >= 3.0:
-    from file_utils3 import *
+    from python_utils.file_utils3 import *
 elif python_version >= 2.0:
-    from file_utils2 import *
+    from python_utils.file_utils2 import *
 else:
     print('python version below 2.0, potential for some unsupported functions')
 
@@ -59,7 +59,10 @@ def get_lines_of_file(fname, mode='r'):
     return lines
 
 def grep_single_file(search_str, fpath, read_mode):
-    lines = get_lines_of_file(fpath, mode=read_mode)
+    try:
+        lines = get_lines_of_file(fpath, mode=read_mode)
+    except UnicodeDecodeError:
+        lines = []
     found_result = [line for line in lines if search_str in line]
     found_result_line_nums = [i for i,line in enumerate(lines) if search_str in line]
     found_result_fpaths = [fpath] * len(found_result)
@@ -85,7 +88,7 @@ def grep(search_str, paths, read_mode='r', fail_if_DNE=False, verbose=False, ret
     found_line_nums = []
     found_fpaths = []
     if type(paths) is str:
-        paths = [paths]
+        paths = [paths]         
 
     if hasattr(paths, '__iter__'):
         for path in paths:
@@ -93,6 +96,7 @@ def grep(search_str, paths, read_mode='r', fail_if_DNE=False, verbose=False, ret
             found_lines += found_result
             found_line_nums += found_result_line_nums
             found_fpaths += found_result_fpaths
+
     elif not fail_if_DNE:
         if verbose:
             print('could not interpret path as str or iterable. paths: ', paths)

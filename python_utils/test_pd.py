@@ -1,4 +1,4 @@
-import pandas_utils
+from python_utils import pandas_utils
 import pandas as pd
 
 df = pd.Series([30.0,20.0], index=range(2))

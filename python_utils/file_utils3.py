@@ -8,7 +8,7 @@ Created on Tue Feb  6 19:16:48 2018
 import csv, json, os, sys, pickle
 from glob import glob
 import shutil
-import time_utils
+from python_utils import time_utils
 
 def output_from_rank(message_args, rank, mode='a', output_fpath_prefix='output_from_world_rank_'):
     output_fpath = output_fpath_prefix + str(rank)
@@ -16,7 +16,7 @@ def output_from_rank(message_args, rank, mode='a', output_fpath_prefix='output_f
           print(message_args, file=f)
 
 def grep_dir_recursively(search_str, dir_path, read_mode):
-    from file_utils import grep_single_file
+    from python_utils.file_utils import grep_single_file
     found_lines = []
     found_line_nums = []
     found_fpaths = []

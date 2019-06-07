@@ -1,4 +1,4 @@
-import list_utils
+from python_utils import list_utils
 
 def find_nth_occurrence_in_str(input_str, search_str, n, reverse=False, overlapping=0):
     if reverse:
