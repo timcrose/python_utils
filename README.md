@@ -3,4 +3,6 @@ Utility functions for common python operations for files, time, lists, math, and
 
 ## Installation
 
+  ```
   python setup.py develop
+  ```
