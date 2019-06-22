@@ -8,7 +8,7 @@ Created on Tue Feb  6 19:16:48 2018
 import csv, json, os, sys, pickle
 from glob import glob
 import shutil, fnmatch, random
-from python_utils import time_utils
+from python_utils import time_utils, err_utils
 import platform
 import numpy as np
 
@@ -18,40 +18,97 @@ if python_version >= 3.0:
 elif python_version >= 2.0:
     from python_utils.file_utils2 import *
 else:
-    print('python version below 2.0, potential for some unsupported functions')
+    print('python version below 2.0, potential for some unsupported ' +
+        'functions')
 
-def write_pickle(fpath, data):
+def write_pickle(fpath, data, fail_gracefully=False, verbose=False):
     '''
     fpath: str
-        file path of pickle file (must include .pickle ext)
+        file path of pickle file (must include .pickle ext).
     data: python obj
         object to be pickled
 
+    fail_gracefully: bool
+        True: Return None but do not raise an error to abort if something 
+            goes wrong in this function. You should only set this to True
+            if you know that failing won't cause problems later on in 
+            your program - i.e. you can fully recover.
+        False: Raise an error to abort the program if something goes
+            wrong in this function.
+
+    verbose: bool
+        True: Print informative statements, if any.
+        False: Do not print any non-crucial statements
+
+    Return: None
+
     Purpose: pickle a python object and store in
-         a .pickle file.
-    '''
-    with open(fpath, "wb") as pickle_out:
-        pickle.dump(data, pickle_out)
+         a .pickle file with path fpath using pickle.dump().
 
-def read_pickle(fname):
+    Notes: The .pickle file will be loadable by pickle.load()
     '''
-    fname: str
-        filename of pickle file (must include .pickle ext)
+    vars_type_list = [[fpath, 'non-existent file'], [data, 'python object'], 
+                        [fail_gracefully, 'bool'], [verbose, 'bool']]
+    err_utils.check_input_vars(vars_type_list)
 
-    Return: unpickled object
+    # Write the python object data to the file with path fpath
+    try:
+        with open(fpath, "wb") as pickle_out:
+            pickle.dump(data, pickle_out)
+    except Exception as e:
+        err_utils.handle_error(e=e, err_message=err_message, fail_gracefully=\
+            fail_gracefully, verbose=verbose)
+        return None
+
+
+def read_pickle(fpath, fail_gracefully=True, verbose=False):
+    '''
+    fpath: str
+        file path of pickle file (must include .pickle extension)
+
+    fail_gracefully: bool
+        True: Return None but do not raise an error to abort if something 
+            goes wrong in this function. You should only set this to True
+            if you know that failing won't cause problems later on in 
+            your program - i.e. you can fully recover.
+        False: Raise an error to abort the program if something goes
+            wrong in this function.
+
+    verbose: bool
+        True: Print informative statements, if any.
+        False: Do not print any non-crucial statements
+
+    Return:
+        if the file is not able to be unpickled: return None
+        else: return the unpickled object
 
     Purpose: unpickle a python object that was stored in
          a .pickle file.
+
+    Notes:
+        The .pickle file must be loadable by pickle.load()
     '''
 
-    if not fname.endswith('.pickle'):
-        print('filename must end with .pickle. fname: ', fname)
-        print('Returning None')
+    # Make sure fpath has a .pickle extension
+    if not fpath.endswith('.pickle'):
+        err_message = 'file path must end with .pickle. fpath: ' + fpath
+        err_utils.handle_error(err_message=err_message, fail_gracefully=\
+            fail_gracefully, verbose=verbose)
+
         return None
 
-    with open(fname, 'rb') as f:
-        python_obj = pickle.load(f)
-    return python_obj
+    # Load the pickled python object into python_obj
+    try:
+        with open(fpath, 'rb') as f:
+            python_obj = pickle.load(f)
+        return python_obj
+    except Exception as e:
+        err_message = 'Could not load the file at fpath =  ' + fpath
+        err_utils.handle_error(e=e, err_message=err_message, fail_gracefully=\
+            fail_gracefully, verbose=verbose)
+
+        return None
+
 
 def get_lines_of_file(fname, mode='r'):
     with open(fname, mode) as f:
