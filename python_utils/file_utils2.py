@@ -33,7 +33,7 @@ def find(start_path, name_search_str=None, recursive=True):
     else:
         for root, dirnames, filenames in os.walk(start_path):
             for filename in fnmatch.filter(filenames, name_search_str):
-            matches.append(os.path.join(root, filename))
+                matches.append(os.path.join(root, filename))
     return matches
 
 def output_from_rank(message_args, rank, mode='ab', output_fpath_prefix='output_from_world_rank_'):
@@ -46,7 +46,7 @@ def grep_dir_recursively(search_str, dir_path, read_mode):
     found_lines = []
     found_line_nums = []
     found_fpaths = []
-    for sub_path in glob2(dir_path, '*'):
+    for sub_path in find(start_path, name_search_str=None, recursive=True):
         if not os.path.isdir(sub_path):
             found_result, found_result_line_nums, found_result_fpaths = grep_single_file(search_str, sub_path, read_mode)
             found_lines += found_result

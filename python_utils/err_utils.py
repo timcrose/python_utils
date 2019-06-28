@@ -18,13 +18,13 @@ def check_input_vars(vars_type_list, fail_gracefully=False, verbose=False):
             type(vars_list) is not str and \
             type(vars_list) is not set and \
             type(vars_list) is not dict):
-        err_message='vars_type_list must be iterable and not str, set, or ' + 
-                    'dict because set and dict are not guaranteed to be in ' +
-                    'the appropriate order. Got vars_type_list: ' + 
+        err_message='vars_type_list must be iterable and not str, set, or ' + \
+                    'dict because set and dict are not guaranteed to be in ' + \
+                    'the appropriate order. Got vars_type_list: ' + \
                     str(type(vars_type_list))
 
-        handle_error(e=None, err_message=err_message, fail_gracefully=False, 
-                    verbose=False):
+        handle_error(e=None, err_message=err_message, fail_gracefully=False,
+                    verbose=False)
 
         return None
 
