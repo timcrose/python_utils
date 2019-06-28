@@ -10,16 +10,30 @@ from glob import glob
 import shutil, fnmatch
 from python_utils import time_utils
 
-def glob2(start_path, pattern, recursive=True):
+def find(start_path, name_search_str=None, recursive=True):
     '''
     Purpose: recursively get files like recursive glob but for python2
+
+    Notes:
+    (1) If name_search_str == '' then returns []
+    (2) if name_search_str is None then returns all files and directories
     '''
     if not recursive:
-        return glob(os.path.join(start_path, pattern))
+        if name_search_str is None:
+            return [os.path.join(start_path, fpath) for fpath in os.listdir()]
+        else:
+            return glob(os.path.join(start_path, name_search_str))
     matches = []
-    for root, dirnames, filenames in os.walk(start_path):
-        for filename in fnmatch.filter(filenames, pattern):
-           matches.append(os.path.join(root, filename))
+    if name_search_str is None:
+        for root, dirnames, filenames in os.walk(start_path):
+            for dirname in dirnames:
+                matches.append(os.path.join(root, dirname))
+            for filename in filenames:
+                matches.append(os.path.join(root, filename))
+    else:
+        for root, dirnames, filenames in os.walk(start_path):
+            for filename in fnmatch.filter(filenames, name_search_str):
+            matches.append(os.path.join(root, filename))
     return matches
 
 def output_from_rank(message_args, rank, mode='ab', output_fpath_prefix='output_from_world_rank_'):
