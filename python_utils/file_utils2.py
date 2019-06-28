@@ -46,7 +46,7 @@ def grep_dir_recursively(search_str, dir_path, read_mode):
     found_lines = []
     found_line_nums = []
     found_fpaths = []
-    for sub_path in find(start_path, name_search_str=None, recursive=True):
+    for sub_path in find(dir_path, name_search_str=None, recursive=True):
         if not os.path.isdir(sub_path):
             found_result, found_result_line_nums, found_result_fpaths = grep_single_file(search_str, sub_path, read_mode)
             found_lines += found_result
