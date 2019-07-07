@@ -187,13 +187,15 @@ def cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=False, verbose=Tr
         src_match_paths = glob(src_path)
         for src_match_path in src_match_paths:
             if os.path.isdir(src_match_path):
-                if os.path.isdir(dest_dir):
+                dest_path = os.path.join(dest_dir, os.path.basename(src_match_path))
+                if os.path.isdir(dest_path):
                     if overwrite:
                         # shutil.copytree throws an error rather than overwriting by default, thus we're removing here
-                        rm(dest_dir, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
-                        shutil.copytree(src_match_path, dest_dir)
+                        rm(dest_path, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
                     else:
                         raise Exception('dest_dir', dest_dir, 'exists and overwrite == False so cannot copy', src_path)
+                    # shutil.copytree expects the final path be the second argument
+                    shutil.copytree(src_match_path, dest_path)
             elif os.path.isfile(src_match_path):
                 dest_fpath = os.path.join(dest_dir, dest_fname)
                 if os.path.isfile(dest_fpath) and not overwrite:
@@ -209,8 +211,7 @@ def cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=False, verbose=Tr
 def cp(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=True, overwrite=True):
     if type(dest_dir) is not str:
         raise ValueError('destination path must be a str. dest_dir: ', dest_dir)
-    if not os.path.isdir(dest_dir):
-        raise Exception('dest_dir', dest_dir, 'DNE so cannot copy.')
+    mkdir_if_DNE(dest_dir)
     if type(src_paths_list) is str:
         if '*' in src_paths_list:
             src_paths_list = glob(src_paths_list)
@@ -262,8 +263,6 @@ def rm(paths, fail_if_cant_rm=False, verbose=True):
 def mv(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=True, overwrite=True):
     if type(dest_dir) is not str:
         raise IOError('Cannot move, destination path needs to be of type str. dest_fpath:', dest_fpath)
-    if not os.path.isdir(dest_dir):
-        raise Exception('dest_dir', dest_dir, 'is not an existent directory so cannot mv')
     #copy then delete. This is the most robust because other methods aren't faster if src and dest are on a different disk. If
     # they are on the same disk, then os.rename is faster, but only works if src and dest are files (not directories).
     cp(src_paths_list, dest_dir, dest_fname=dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose, overwrite=overwrite)
