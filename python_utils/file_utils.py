@@ -438,3 +438,31 @@ def replace_line_in_file(search_str, replacement_line, fpath, num_of_occurrences
             lines[i] = replacement_line
             num_occurrences += 1
     write_lines_to_file(fpath, lines, mode='w')
+
+
+def concatenate_files(flist, new_fpath, write_concatenated_file=True, return_lines=False):
+    '''
+    flist: non-string iterable
+        list of files to concatenate
+
+    new_fpath: str
+        full or relative path including file name of the concatenated file.
+
+    write_concatenated_file: bool
+        Whether to write the concatenated lines to a file
+
+    return_lines: bool
+        Whether to return the concatenated lines
+
+    return: None or list
+        None if return_lines is False, list of lines of the concatenated files otherwise
+
+    Purpose: Concatenate the contents of files with the first file in the list being at the top of the new file.
+        Return the lines as a list if requested.
+    '''
+    all_lines = [get_lines_of_file(fpath) for fpath in flist]
+    all_lines = list_utils.flatten_list(all_lines)
+    if write_concatenated_file:
+        write_lines_to_file(new_fpath, all_lines)
+    if return_lines:
+        return all_lines
