@@ -8,7 +8,7 @@ Created on Tue Feb  6 19:16:48 2018
 import csv, json, os, sys, pickle
 from glob import glob
 import shutil, fnmatch, random
-from python_utils import time_utils, err_utils
+from python_utils import time_utils, err_utils, list_utils
 import platform
 import numpy as np
 
