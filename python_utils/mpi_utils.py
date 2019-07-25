@@ -21,3 +21,33 @@ def barrier(comm):
         file_utils.rm(output_fpath_search_str)
     else:
         time_utils.sleep(0.4)
+
+def barrier_with_sleep(comm, tag=2277437, sleep=0.01):
+    size = comm.Get_size()
+    if size == 1:
+        return
+    rank = comm.Get_rank()
+    mask = 1
+    while mask < size:
+        dst = (rank + mask) % size
+        src = (rank - mask + size) % size
+        req = comm.isend(None, dst, tag)
+        while not comm.Iprobe(src, tag):
+            time.sleep(sleep)
+        comm.recv(None, src, tag)
+        req.Wait()
+        mask <<= 1
+
+    '''
+    # test the beast!
+    import time
+    from mpi4py import MPI
+    comm = MPI.COMM_WORLD
+    tic = MPI.Wtime()
+    if comm.rank==0:
+        time.sleep(10)
+    barrier(comm)
+    toc = MPI.Wtime()
+    print(comm.rank, toc-tic)
+    # reported to work with MPICH2
+    '''
