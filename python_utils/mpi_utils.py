@@ -1,6 +1,6 @@
 from python_utils import file_utils, time_utils
 
-def barrier(comm):
+def file_system_barrier(comm):
     '''
     comm: MPI.COMM_WORLD from mpi4py
         MPI communicator from mpi4py
@@ -22,10 +22,8 @@ def barrier(comm):
     else:
         time_utils.sleep(0.4)
 
-def barrier_with_sleep(comm, tag=2277437, sleep=0.01):
+def barrier(comm, tag=0, sleep=0.01):
     size = comm.Get_size()
-    if size == 1:
-        return
     rank = comm.Get_rank()
     mask = 1
     while mask < size:
@@ -49,5 +47,4 @@ def barrier_with_sleep(comm, tag=2277437, sleep=0.01):
     barrier(comm)
     toc = MPI.Wtime()
     print(comm.rank, toc-tic)
-    # reported to work with MPICH2
     '''
