@@ -43,9 +43,6 @@ def grep_dir_recursively(search_str, dir_path, read_mode):
     return found_lines, found_line_nums, found_fpaths
     
 def write_row_to_csv(path, one_dimensional_list, mode='a', delimiter=','):
-    if path[-4:] != '.csv':
-        raise Exception('path must have .csv extension. path:', path)
-
     if type(one_dimensional_list) != list:
         raise TypeError('row is not type list, cannot write to csv. type(one_dimensional_list):', \
               type(one_dimensional_list), 'one_dimensional_list:', one_dimensional_list)
