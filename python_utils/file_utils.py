@@ -285,9 +285,6 @@ def rms(paths, fail_if_cant_rm=False, verbose=True):
         raise ValueError('paths must be a string of one path or an iterable of paths which are strings. paths:', paths)
 
 def read_csv(path,mode='r', map_type=None, dtype=None):
-    if path[-4:] != '.csv':
-        raise Exception('fname must have .csv extension. path:', path)
-
     red_csv = []
 
     if not os.path.exists(path):
