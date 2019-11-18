@@ -10,6 +10,7 @@ from glob import glob
 import shutil, fnmatch
 from python_utils import time_utils
 
+
 def find(start_path, name_search_str=None, recursive=True):
     '''
     Purpose: recursively get files like recursive glob but for python2
@@ -20,7 +21,7 @@ def find(start_path, name_search_str=None, recursive=True):
     '''
     if not recursive:
         if name_search_str is None:
-            return [os.path.join(start_path, fpath) for fpath in os.listdir()]
+            return [os.path.join(start_path, fpath) for fpath in os.listdir(start_path)]
         else:
             return glob(os.path.join(start_path, name_search_str))
     matches = []
@@ -32,9 +33,14 @@ def find(start_path, name_search_str=None, recursive=True):
                 matches.append(os.path.join(root, filename))
     else:
         for root, dirnames, filenames in os.walk(start_path):
-            for filename in fnmatch.filter(filenames, name_search_str):
-                matches.append(os.path.join(root, filename))
+            for dirname in dirnames:
+                if fnmatch.fnmatch(dirname, name_search_str):
+                    matches.append(os.path.join(root, dirname))
+            for filename in filenames:
+                if fnmatch.fnmatch(filename, name_search_str):
+                    matches.append(os.path.join(root, filename))
     return matches
+
 
 def output_from_rank(message_args, rank, mode='ab', output_fpath_prefix='output_from_world_rank_'):
     output_fpath = output_fpath_prefix + str(rank)
