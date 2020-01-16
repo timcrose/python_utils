@@ -1,8 +1,27 @@
 from python_utils import file_utils, time_utils
 
-def root_print(comm, *print_message):
-   if comm.rank == 0:
+def root_print(rank, *print_message):
+   if rank == 0:
       print(print_message)
+
+
+def parallel_mkdir(rank, dirpath):
+    '''
+    rank: int
+        mpi4py comm rank
+    dirpath: str
+        Path of new directory to make. This will create directories leading up to this one if they DNE.
+
+    Return: None
+
+    Purpose: Have the root rank mkdir and the rest of the ranks wait to save a little bit of time
+        compared to comm.barrier(). Plus, this is cleaner.
+    '''
+    if rank == 0:
+        file_utils.mkdir_if_DNE(dirpath)
+    else:
+        file_utils.wait_for_file_to_exist_and_written_to(dirpath, total_timeout=60, time_frame=0.05))
+
 
 def file_system_barrier(comm):
     '''
