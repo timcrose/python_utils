@@ -20,7 +20,7 @@ def parallel_mkdir(rank, dirpath):
     if rank == 0:
         file_utils.mkdir_if_DNE(dirpath)
     else:
-        file_utils.wait_for_file_to_exist_and_written_to(dirpath, total_timeout=60, time_frame=0.05))
+        file_utils.wait_for_file_to_exist_and_written_to(dirpath, total_timeout=60, time_frame=0.05)
 
 
 def file_system_barrier(comm):

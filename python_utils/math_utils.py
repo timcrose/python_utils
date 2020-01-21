@@ -23,17 +23,23 @@ def round_nearest_multiple(number, a, direction='standard'):
 def mean(lst):
     return sum(lst) / float(len(lst))
 
-def round(number, num_decimal_places):
+def round(number, num_decimal_places, leave_int=True):
     '''
     number: number
         number to round
-    num_decimal_places: number of decimal places to round number to
+    num_decimal_places: int
+        number of decimal places to round number to
+    leave_int: bool
+        True: If int(number) == number, then do not modify number
+        False: Convert any ints to floats
     
     return: number (float)
         rounded number
     Purpose: round a number to the specified number of decimal places. Existing 
         round functions may not round correctly.
     '''
+    if leave_int and int(number) == number:
+        return number
     decimal_str = '1.'
     for decimal_place in range(num_decimal_places):
         decimal_str += '1'
