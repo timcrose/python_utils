@@ -115,10 +115,12 @@ def get_lines_of_file(fname, mode='r'):
         lines = f.readlines()
     return lines
 
-def grep_single_file(search_str, fpath, read_mode):
+def grep_single_file(search_str, fpath, read_mode, verbose=False):
     try:
         lines = get_lines_of_file(fpath, mode=read_mode)
     except UnicodeDecodeError:
+        if verbose:
+            print('Warning, UnicodeDecodeError encountered by grep_single_file for fpath', fpath)
         lines = []
     found_result = [line for line in lines if search_str in line]
     found_result_line_nums = [i for i,line in enumerate(lines) if search_str in line]
@@ -131,7 +133,7 @@ def grep_str(search_str, path, read_mode, fail_if_DNE=False, verbose=False):
         if os.path.isdir(path):
             return grep_dir_recursively(search_str, path, read_mode)
         elif os.path.isfile(path):
-            return grep_single_file(search_str, path, read_mode)
+            return grep_single_file(search_str, path, read_mode, verbose)
         
     if not fail_if_DNE:
         if verbose:
