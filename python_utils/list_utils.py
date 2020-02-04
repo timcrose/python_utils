@@ -1,4 +1,5 @@
 import re, random, itertools
+from python_utils import math_utils
 import numpy as np
 
 def sorted_nicely(l):
@@ -144,7 +145,7 @@ def fill_missing_data_evenly(list_, expected_len, direction='left'):
     #Divide the list up into additional_num_points_needed partitions and insert
     # a point (equal to its neighbor) in the center of each partition
     partitions = [0] + [(i + 1) * partition_size for i in range(additional_num_points_needed)]
-    indices_to_insert = [int(round((partitions[i + 1] - partitions[i]) / 2.0) + partitions[i]) for i in range(len(partitions) - 1)]
+    indices_to_insert = [int(math_utils.round((partitions[i + 1] - partitions[i]) / 2.0) + partitions[i]) for i in range(len(partitions) - 1)]
     filled_list = multi_insert(list_, indices_to_insert, direction=direction)
     return filled_list
 
@@ -206,8 +207,46 @@ def sort_by_col(data, col):
 
     purpose: Sort data by the specified column
     '''
-    try:
-        sorted_data = data[np.argsort(data[:,col])]
-    except:
-        return None
+    #try:
+    #    sorted_data = data[np.argsort(data[:,col])]
+    #except:
+    #    return None
+    sorted_data = data[np.argsort(data[:,col])]
     return sorted_data
+
+def is_contiguous(indices, mat_shape):
+    '''
+    indices: np.array, shape (x,2)
+        Matrix of x indices where each index is an int i,j pair corresponding to an element index in a matrix
+        of shape mat_shape.
+
+    mat_shape: length 2 tuple, list, or 1D array
+        Shape of the matrix which indices are indices for.
+
+    Return: bool
+        True: This list of indices is in contiguous order
+        False: o/w
+
+    Purpose: This function returns a bool for whether the provided indices of a 2D matrix are in contiguous
+        order (this would be useful e.g. when writing to a np.memmap where you only get an int offset value).
+    '''
+    if indices.dtype != np.int64:
+        raise Exception('indices must have all integers')
+    if indices.shape[1] != 2:
+        raise Exception('indices, must have shape (x,2) because it is a list of indices of a 2D matrix.')
+    if len(indices) < 2:
+        return True
+    n, m = mat_shape
+    prev_i, prev_j = indices[0][0], indices[0][1]
+    for i,j in indices[1:]:
+        if i >= n or j >= m:
+            raise IndexError('Index given in indices,', i,j, ', is out of bounds for matrix of shape', mat_shape)
+        if i != prev_i:
+            if i < prev_i or i != prev_i + 1:
+                return False
+            if j != 0 or prev_j != m - 1:
+                return False
+        elif j != prev_j + 1:
+            return False
+        prev_i, prev_j = i, j
+    return True

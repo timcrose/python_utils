@@ -5,12 +5,17 @@ def root_print(rank, *print_message):
       print(print_message)
 
 
-def parallel_mkdir(rank, dirpath):
+def parallel_mkdir(rank, dirpath, total_timeout=1000, time_frame=0.05):
     '''
     rank: int
         mpi4py comm rank
     dirpath: str
         Path of new directory to make. This will create directories leading up to this one if they DNE.
+    total_timeout: number
+        Amount of time in seconds to wait for dir to be created by root before giving up and assuming an error occurred
+        so abort.
+    time_frame: number
+        Amount of time in seconds for the frequency of checking if the dir has been created.
 
     Return: None
 
@@ -20,7 +25,7 @@ def parallel_mkdir(rank, dirpath):
     if rank == 0:
         file_utils.mkdir_if_DNE(dirpath)
     else:
-        file_utils.wait_for_file_to_exist_and_written_to(dirpath, total_timeout=60, time_frame=0.05)
+        file_utils.wait_for_file_to_exist_and_written_to(dirpath, total_timeout=total_timeout, time_frame=time_frame)
 
 
 def file_system_barrier(comm):

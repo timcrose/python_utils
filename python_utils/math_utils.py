@@ -23,7 +23,7 @@ def round_nearest_multiple(number, a, direction='standard'):
 def mean(lst):
     return sum(lst) / float(len(lst))
 
-def round(number, num_decimal_places, leave_int=True):
+def round(number, num_decimal_places, leave_int=False):
     '''
     number: number
         number to round
