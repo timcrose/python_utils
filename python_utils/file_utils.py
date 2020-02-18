@@ -377,7 +377,14 @@ def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_fram
     while not os.path.exists(fpath):
         if time_utils.gtime() - start_time > total_timeout:
             raise Exception('file ' + fpath + ' still DNE after a total of ' + str(total_timeout) + ' seconds')
-    fsize = os.path.getsize(fpath)
+    while True:
+        try:
+            fsize = os.path.getsize(fpath)
+            break
+        except FileNotFoundError:
+            pass
+        if time_utils.gtime() - start_time > total_timeout:
+            raise Exception('file ' + fpath + ' still not done being written to after a total of ' + str(total_timeout) + ' seconds')
     time_utils.sleep(time_frame)
     while fsize != os.path.getsize(fpath):
         fsize = os.path.getsize(fpath)
@@ -466,3 +473,38 @@ def concatenate_files(flist, new_fpath, write_concatenated_file=True, return_lin
         write_lines_to_file(new_fpath, all_lines)
     if return_lines:
         return all_lines
+
+def safe_np_load(npy_fpath, total_timeout=10000, time_frame=0.05, verbose=False):
+    '''
+    npy_fpath: str
+        Path to file that is loadable by np.load()
+
+    total_timeout: number
+        total number of seconds before aborting the wait command
+
+    time_frame: number
+        number of seconds to wait between each check of file size.
+
+    verbose: bool
+        Whether to print some log info
+
+    Return: np.array
+        The contents of npy_fpath as loaded by np.load()
+
+    Purpose: Check to make sure file exists before loading it. If DNE, wait until
+        it does exist or your timeout is reached.
+    '''
+    start_time = time_utils.gtime()
+    wait_for_file_to_exist_and_written_to(npy_fpath, total_timeout=total_timeout, time_frame=time_frame)
+    if verbose:
+        print('took {} seconds to wait for file to exist and written to according to the function wait_for_file_to_exist_and_written_to'.format(time_utils.gtime() - start_time))
+        start_time_load = time_utils.gtime()
+    while time_utils.gtime() - start_time < total_timeout:
+        try:
+            npy = np.load(npy_fpath)
+            if verbose:
+                print('took {} seconds after file {} exists to load it'.format(time_utils.gtime() - start_time_load, npy_fpath))
+            return npy
+        except ValueError:
+            time_utils.sleep(time_frame)
+    raise TimeoutError('total_timeout was reached in save_np_load')

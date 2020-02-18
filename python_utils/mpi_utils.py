@@ -5,6 +5,23 @@ def root_print(rank, *print_message):
       print(print_message)
 
 
+def rank_print(rank_output_path, *print_message):
+    '''
+    rank_output_path: str
+        Path to the log file for a single MPI rank.
+
+    print_message: anything
+        arguments to print()
+
+    Return: None
+
+    Purpose: write to a file that belongs to one MPI rank only
+        in order to prevent clashing.
+    '''
+    with open(rank_output_path, mode='a') as f:
+        print(print_message, file=f, flush=True)
+
+
 def parallel_mkdir(rank, dirpath, total_timeout=1000, time_frame=0.05):
     '''
     rank: int
@@ -76,3 +93,31 @@ def barrier(comm, tag=0, sleep=0.01):
     toc = MPI.Wtime()
     print(comm.rank, toc-tic)
     '''
+
+
+def split_up_list_evenly(lst, rank, size):
+    '''
+    lst: list or np.array
+        Overall list of elements to split up amongst ranks
+    rank: int
+        MPI rank for communicator of size size
+    size:
+        Number of total ranks in a communicator (size)
+
+    Return:
+    lst: list or np.array
+        List of elements that rank rank should work on.
+
+    Purpose: When doing embarrassingly parallel calculations, you need to split up
+        an array of tasks to your available ranks. This function divides up the
+        array as evenly as possible. e.g. if size = 3, and lst = [0,1,2,3,4], then
+        rank 0 gets [0,1], rank 1 gets [2,3], and rank 2 gets [4].
+    '''
+    num_tasks = len(lst)
+    tasks_per_rank = int(num_tasks / size)
+    num_remainder_tasks = num_tasks - tasks_per_rank * size
+    if rank < num_remainder_tasks:
+        lst = lst[rank * (tasks_per_rank + 1) : (rank + 1) * (tasks_per_rank + 1)]
+    else:
+        lst = lst[num_remainder_tasks + rank * tasks_per_rank : num_remainder_tasks + (rank + 1) * tasks_per_rank]
+    return lst

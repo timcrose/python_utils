@@ -36,7 +36,7 @@ def round(number, num_decimal_places, leave_int=False):
     return: number (float)
         rounded number
     Purpose: round a number to the specified number of decimal places. Existing 
-        round functions may not round correctly.
+        round functions may not round correctly so that's why I built my own.
     '''
     if leave_int and int(number) == number:
         return number
@@ -47,3 +47,23 @@ def round(number, num_decimal_places, leave_int=False):
 
 def randrange_float(start, stop, step, num_decimal_places=4):
     return round(random.randint(0, int((stop - start) / step)) * step + start, num_decimal_places)
+
+def round_matrix(matrix, num_decimal_places, leave_int=False):
+    '''
+    matrix: list of lists of numbers or 2D array of numbers
+        matrix to round its elements
+    num_decimal_places: int
+        number of decimal places to round number to
+    leave_int: bool
+        True: If int(number) == number, then do not modify number
+        False: Convert any ints to floats
+    
+    return: same type as input
+        rounded matrix
+    Purpose: round each number in a matrix to the specified number of decimal places. Existing 
+        round functions may not round correctly so that's why I built my own.
+    '''
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            matrix[i][j] = round(matrix[i][j], num_decimal_places, leave_int=leave_int)
+    return matrix
