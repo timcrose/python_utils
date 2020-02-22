@@ -508,3 +508,74 @@ def safe_np_load(npy_fpath, total_timeout=10000, time_frame=0.05, verbose=False)
         except ValueError:
             time_utils.sleep(time_frame)
     raise TimeoutError('total_timeout was reached in save_np_load')
+
+
+def format_path_cleanly(path):
+    '''
+    path: str
+        Path of file or directory.
+
+    Return:
+    clean_path: str
+        Path of file or directory now without ./ prepended or /. or / appended.
+        ./ , . , and ./. are returned as .
+
+    Purpose: Sometimes paths contain ./ prepended or /. or / appended but these
+        might not be desirable. This function pretties up the format.
+    
+    Methodology:
+    We will be removing prepended ./ or appended /. or / characters. If any
+    one of these characters are removed, repeat the loop seeing if any 
+    additional of these characters needs to be removed. This enables
+    'dir/./.' to be returned as 'dir'. For each character, if it is not found
+    (in an offending place) then increase a couner num_passes by 1. Thus, if an
+    iteration of this loop removes none of these characters, then num_passes 
+    will be 3 and we are done.
+    '''
+
+    # num_passes is the counter for the number of consecutive times we 'pass a 
+    # check' which means we did not find a character in an offending place
+    # (e.g. /. in the [-2:] position).
+    num_passes = 0
+    while num_passes != 3:
+        # num_passes is reset at each iteration because we want every check to 
+        # pass on an iteration of this loop.
+        num_passes = 0
+        # If len(s) is 1, then it will not need trimming.
+        if len(s) > 1:
+            if s[-1] == '/':
+                # Remove appended /
+               s = s[:-1]
+            else:
+               num_passes += 1
+            if s[-2:] == '/.':
+                # Remove appended /.
+                s = s[:-2]
+            else:
+                num_passes += 1
+            if s[:2] == './' and s != './':
+                # Remove prepended ./
+                s = s[2:]
+            else:
+                num_passes += 1
+        else:
+            # If len(s) is 1, then it will not need trimming.
+            break
+    return s
+
+
+def format_all_paths_cleanly(path_lst):
+    '''
+    path_lst: list of str
+        List of paths.
+
+    Return:
+    clean_paths: list of str
+        List of paths with clean format which means no './' strings prepended
+        and no '/' or '/.' strings appended.
+
+    Purpose: Purpose: Sometimes paths contain ./ prepended or /. or / appended but these
+        might not be desirable. This function pretties up the format for a list of 
+        paths.
+    '''
+    return [format_path_cleanly(path) for path in path_lst]
