@@ -1,6 +1,6 @@
 import os
 from numbers import Number
-import math_utils
+from python_utils import math_utils
 
 def handle_error(e=None, err_message='Alert', fail_gracefully=False, 
                 verbose=False):
@@ -42,7 +42,7 @@ def handle_error(e=None, err_message='Alert', fail_gracefully=False,
 
 def try_assign(func, *input_params, fail_value=None, \
         err_message='Alert; could call func with given input parameters', \
-        fail_gracefully=False, verbose=False)):
+        fail_gracefully=False, verbose=False):
 
     '''
     func: callable function
@@ -123,21 +123,21 @@ def check_input_var_type(var, desired_type, fail_gracefully=False, \
         err_message = 'Alert; wanted var to be existent path but got var =', var
         return try_assign(os.path.exists, var, fail_value=False,\
                 err_message=err_message, fail_gracefully=fail_gracefully,\
-                verbose=verbose))
+                verbose=verbose)
 
     if desired_type == 'dir':
         # We desire var to be any valid and existent directory path.
         err_message = 'Alert; wanted var to be existent dir but got var =', var
         return try_assign(os.path.isdir, var, fail_value=False,\
                 err_message=err_message, fail_gracefully=fail_gracefully,\
-                verbose=verbose))
+                verbose=verbose)
 
     if desired_type == 'file':
         # We desire var to be any valid and existent file (but not dir) path.
         err_message = 'Alert; wanted var to be existent file but got var =', var
         return try_assign(os.path.isdir, var, fail_value=False,\
                 err_message=err_message, fail_gracefully=fail_gracefully,\
-                verbose=verbose))
+                verbose=verbose)
 
     if desired_type == 'number':
         # We desire var to be any valid numeric value.

@@ -541,27 +541,27 @@ def format_path_cleanly(path):
         # num_passes is reset at each iteration because we want every check to 
         # pass on an iteration of this loop.
         num_passes = 0
-        # If len(s) is 1, then it will not need trimming.
-        if len(s) > 1:
-            if s[-1] == '/':
+        # If len(path) is 1, then it will not need trimming.
+        if len(path) > 1:
+            if path[-1] == '/':
                 # Remove appended /
-               s = s[:-1]
+               path = path[:-1]
             else:
                num_passes += 1
-            if s[-2:] == '/.':
+            if path[-2:] == '/.':
                 # Remove appended /.
-                s = s[:-2]
+                path = path[:-2]
             else:
                 num_passes += 1
-            if s[:2] == './' and s != './':
+            if path[:2] == './' and path != './':
                 # Remove prepended ./
-                s = s[2:]
+                path = path[2:]
             else:
                 num_passes += 1
         else:
-            # If len(s) is 1, then it will not need trimming.
+            # If len(path) is 1, then it will not need trimming.
             break
-    return s
+    return path
 
 
 def format_all_paths_cleanly(path_lst):
