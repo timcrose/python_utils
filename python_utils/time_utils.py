@@ -16,6 +16,10 @@ from time import localtime
 from time import strftime
 from time import strptime
 
+def get_gtime_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p'):
+    dt = datetime.strptime(date_str, date_fmt)
+    return dt.timestamp()
+
 def get_greg_time_from_time_str(time_str='00:00:00', ds=None, DATE_FMT='%Y-%m-%d', TIME_FMT='%H:%M:%S'):
 
     if ds is None:
