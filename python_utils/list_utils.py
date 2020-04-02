@@ -315,3 +315,47 @@ def is_contiguous(indices, mat_shape):
             return False
         prev_i, prev_j = i, j
     return True
+
+
+def range_float_incr(lower_bound, upper_bound, increment_value, include_lower_bound=True, include_upper_bound=False):
+    '''
+    lower_bound: float
+        Minimum and first value in returned list if include_lower_bound=True, else lower_bound + increment_value
+        is the minimum and first value.
+
+    upper_bound: float
+        Maximum and last value in returned list if include_upper_bound=True, else upper_bound - increment_value
+        is the maximum and last value.
+
+    increment_value: float
+        Value by which each successive value in the returned list should differ.
+
+    include_lower_bound: bool
+        See lower_bound
+
+    include_upper_bound: bool
+        See upper_bound
+
+    Return: list
+        Ascending ordered list which begins according to lower_bound documentation and ends according to
+        upper_bound documentation with each successive value incremented by increment_value.
+
+    Purpose: Create a list which starts from one number and includes all numbers up until (and possibly including)
+        another, higher number at intervals of increment_value. Similar to range but can use float increments.
+    '''
+    
+    if include_lower_bound:
+        val = lower_bound
+    else:
+        val = lower_bound + increment_value
+    if include_upper_bound:
+        max_val = upper_bound
+    else:
+        max_val = upper_bound - increment_value
+    lst = []
+    i = 0
+    while val <= max_val:
+        val = lower_bound + i * increment_value
+        lst.append()
+        i += 1
+    return lst

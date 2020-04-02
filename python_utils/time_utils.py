@@ -17,6 +17,18 @@ from time import strftime
 from time import strptime
 
 def get_gtime_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p'):
+    '''
+    date_str: str
+        String of date and time with format corresponding to date_fmt
+
+    date_fmt: str
+        Format string of date_str according to datetime documentation.
+
+    Return: number
+        Number of seconds since the epoch
+    
+    Purpose: Get the number of seconds since the epoch given a date string
+    '''
     dt = datetime.strptime(date_str, date_fmt)
     return dt.timestamp()
 
