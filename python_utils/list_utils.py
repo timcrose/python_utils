@@ -343,7 +343,7 @@ def range_float_incr(lower_bound, upper_bound, increment_value, include_lower_bo
     Purpose: Create a list which starts from one number and includes all numbers up until (and possibly including)
         another, higher number at intervals of increment_value. Similar to range but can use float increments.
     '''
-    
+
     if include_lower_bound:
         val = lower_bound
     else:
@@ -354,8 +354,8 @@ def range_float_incr(lower_bound, upper_bound, increment_value, include_lower_bo
         max_val = upper_bound - increment_value
     lst = []
     i = 0
-    while val <= max_val:
+    while val < max_val:
         val = lower_bound + i * increment_value
-        lst.append()
+        lst.append(val)
         i += 1
     return lst
