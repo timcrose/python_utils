@@ -545,9 +545,9 @@ def format_path_cleanly(path):
         if len(path) > 1:
             if path[-1] == '/':
                 # Remove appended /
-               path = path[:-1]
+                path = path[:-1]
             else:
-               num_passes += 1
+                num_passes += 1
             if path[-2:] == '/.':
                 # Remove appended /.
                 path = path[:-2]
