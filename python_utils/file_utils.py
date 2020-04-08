@@ -5,7 +5,7 @@ Created on Tue Feb  6 19:16:48 2018
 @author: timcrose
 """
 
-import csv, json, os, sys, pickle
+import csv, json, os, sys, pickle, h5py
 from glob import glob
 import shutil, fnmatch, random
 from python_utils import time_utils, err_utils, list_utils
@@ -579,3 +579,51 @@ def format_all_paths_cleanly(path_lst):
         paths.
     '''
     return [format_path_cleanly(path) for path in path_lst]
+
+
+def write_h5_file(h5_fpath, data, attrs_dct={}, dset_name=None, overwrite=True, fail_if_already_exists=False, verbose=False):
+    '''
+    h5_fpath: str
+        Path to .h5 output file
+
+    data: np.array (any shape)
+        array to store in the h5 file
+
+    attrs_dct: dict
+        Each key value pair in attrs_dct will be an attribute of the dataset
+        stored as dset.attrs[key] = value
+
+    dset_name: str or None
+        Name of dataset to reference when reading it later. If None, use the fname of the 
+        supplied h5_fpath.
+
+    overwrite: bool
+        True: overwrite or create file.
+        False: If DNE, create file. If exists, look to fail_if_already_exists
+
+    fail_if_already_exists: bool
+        True: If exists, raise error
+        False: If exists and verbose, print that it already exists.
+
+    verbose: bool
+        True: If exists and fail_if_already_exists and verbose, print that it already exists.
+        False: pass
+
+    Return: None
+
+    Purpose: Write an h5 file using h5py to contain a dataset supplied by
+        data and attributes supplied by attrs_dct.
+    '''
+    if os.path.exists(h5_fpath):
+        if not overwrite:
+            if fail_if_already_exists:
+                raise Exception('File', h5_fpath, 'already exists and you did not want to overwrite it.')
+            elif verbose:
+                print('File', h5_fpath, 'already exists and you did not want to overwrite it...skipping...')
+                return
+    if dset_name is None:
+        dset_name = fname_from_fpath(h5_fpath)
+    with h5py.File(h5_fpath, 'w') as hf:
+        dset = hf.create_dataset(dset_name, data=data)
+        for key in attrs_dct:
+            dset.attrs[key] = attrs_dct[key]
