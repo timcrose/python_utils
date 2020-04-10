@@ -386,7 +386,7 @@ def split_up_list_evenly(lst, num_partitions):
     split_lst = [lst[i * (tasks_per_partition + 1) : (i + 1) * (tasks_per_partition + 1)] \
                 for i in range(num_partitions - 1)
                 ] \
-                + lst[num_remainder_tasks + (num_partitions - 1) * tasks_per_partition : num_remainder_tasks + num_partitions * tasks_per_partition]
+                + [lst[num_remainder_tasks + (num_partitions - 1) * tasks_per_partition : num_remainder_tasks + num_partitions * tasks_per_partition]]
     if isinstance(lst, list):
         return split_lst
     else:
