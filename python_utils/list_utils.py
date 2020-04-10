@@ -359,3 +359,35 @@ def range_float_incr(lower_bound, upper_bound, increment_value, include_lower_bo
         lst.append(val)
         i += 1
     return lst
+
+
+def split_up_list_evenly(lst, num_partitions):
+    '''
+    lst: list or np.array
+        Overall list of elements to split up amongst partitions
+
+    num_partitions: int
+        Number of partitions to split up the list into.
+
+    Return:
+    split_lst: list or np.array
+        List of elements that each partition should get.
+
+    Purpose: This function divides up the given list or array as evenly as possible.
+        e.g. if num_partitions = 3, and lst = [0,1,2,3,4], then partition 0 gets [0,1],
+        partition 1 gets [2,3], and partition 2 gets [4].
+    '''
+    err_utils.check_input_var_type(num_partitions, int)
+    if num_partitions < 1:
+        raise ValueError('num_partitions must be >= 1 but got num_partitions =',num_partitions)
+    num_tasks = len(lst)
+    tasks_per_partition = int(num_tasks / num_partitions)
+    num_remainder_tasks = num_tasks - tasks_per_partition * num_partitions
+    split_lst = [lst[i * (tasks_per_partition + 1) : (i + 1) * (tasks_per_partition + 1)] \
+                for i in range(num_partitions - 1)
+                ] \
+                + lst[num_remainder_tasks + (num_partitions - 1) * tasks_per_partition : num_remainder_tasks + num_partitions * tasks_per_partition]
+    if isinstance(lst, list):
+        return split_lst
+    else:
+        return np.array(split_lst)
