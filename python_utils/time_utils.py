@@ -16,7 +16,7 @@ from time import localtime
 from time import strftime
 from time import strptime
 
-def get_gtime_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p'):
+def get_gtime_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p', start_date='01/01/1970, 04:00:00 am'):
     '''
     date_str: str
         String of date and time with format corresponding to date_fmt
@@ -24,13 +24,19 @@ def get_gtime_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p'):
     date_fmt: str
         Format string of date_str according to datetime documentation.
 
+    start_date: str
+        Date string corresponding to date_fmt of the date you would like to start counting from.
+
     Return: number
-        Number of seconds since the epoch
+        Number of seconds since the epoch, or since start_date.
     
     Purpose: Get the number of seconds since the epoch given a date string
     '''
     dt = datetime.strptime(date_str, date_fmt)
-    return dt.timestamp()
+    dt_timestamp = dt.timestamp()
+    dt_start_date = datetime.strptime(start_date, date_fmt)
+    dt_start_date_timestamp = dt_start_date.timestamp()
+    return dt_timestamp - dt_start_date_timestamp
 
 def get_greg_time_from_time_str(time_str='00:00:00', ds=None, DATE_FMT='%Y-%m-%d', TIME_FMT='%H:%M:%S'):
 

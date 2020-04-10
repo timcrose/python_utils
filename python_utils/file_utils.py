@@ -627,3 +627,44 @@ def write_h5_file(h5_fpath, data, attrs_dct={}, dset_name=None, overwrite=True, 
         dset = hf.create_dataset(dset_name, data=data)
         for key in attrs_dct:
             dset.attrs[key] = attrs_dct[key]
+
+
+def read_h5_file(h5_fpath, dset_name=None, return_data=True, return_attrs=True):
+    '''
+    h5_fpath: str
+        Path to .h5 file to read
+
+    dset_name: str or None
+        Name of dataset to reference when reading it later. If None, use the fname of the 
+        supplied h5_fpath.
+
+    return_data: bool
+        True: Return data contained in the dataset referred to by dset_name in h5_fpath.
+        False: Return None in place of this data.
+
+    return_attrs: bool
+        True: Return a dictionary where keys are those in dset.attrs and values are dset.attrs[key]
+        False: Return None in place of this dictionary.
+
+    Return:
+        data: np.array or None
+            Data contained in the dataset referred to by dset_name in h5_fpath.
+
+        attrs_dct: dict or None
+            Keys are those in dset.attrs and values are dset.attrs[key]
+
+    Purpose: Read dataset referred to by dset_name in h5_fpath and return the data inside and/or
+        the attribute dictionary, if desired.
+    '''
+    if dset_name is None:
+        dset_name = fname_from_fpath(h5_fpath)
+    with h5py.File(h5_fpath, 'r') as hf:
+        dset = hf[dset_name]
+        if return_data and return_attrs:
+            return dset[:], {key:dset.attrs[key] for key in dset.attrs}
+        if return_data and not return_attrs:
+            return dset[:], None
+        if not return_data and return_attrs:
+            return None, {key:dset.attrs[key] for key in dset.attrs}
+        if not return_data and not return_attrs:
+            return None, None
