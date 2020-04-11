@@ -380,6 +380,8 @@ def split_up_list_evenly(lst, num_partitions):
     err_utils.check_input_var_type(num_partitions, int)
     if num_partitions < 1:
         raise ValueError('num_partitions must be >= 1 but got num_partitions =',num_partitions)
+    if not isinstance(lst, list):
+        lst = list(lst)
     num_tasks = len(lst)
     tasks_per_partition = int(num_tasks / num_partitions)
     num_remainder_tasks = num_tasks - tasks_per_partition * num_partitions
@@ -387,7 +389,4 @@ def split_up_list_evenly(lst, num_partitions):
                 for i in range(num_partitions - 1)
                 ] \
                 + [lst[num_remainder_tasks + (num_partitions - 1) * tasks_per_partition : num_remainder_tasks + num_partitions * tasks_per_partition]]
-    if isinstance(lst, list):
-        return split_lst
-    else:
-        return np.array(split_lst)
+    return split_lst
