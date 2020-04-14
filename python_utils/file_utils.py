@@ -503,7 +503,7 @@ def concatenate_files(flist, new_fpath, write_concatenated_file=True, return_lin
     if return_lines:
         return all_lines
 
-def safe_np_load(npy_fpath, total_timeout=10000, time_frame=0.05, verbose=False):
+def safe_np_load(npy_fpath, total_timeout=10000, time_frame=0.05, verbose=False, check_file_done_being_written_to=True):
     '''
     npy_fpath: str
         Path to file that is loadable by np.load()
@@ -517,6 +517,10 @@ def safe_np_load(npy_fpath, total_timeout=10000, time_frame=0.05, verbose=False)
     verbose: bool
         Whether to print some log info
 
+    check_file_done_being_written_to: bool
+        Whether to check file size to determine if the file is being written to
+        and thus unsafe to load.
+
     Return: np.array
         The contents of npy_fpath as loaded by np.load()
 
@@ -524,7 +528,10 @@ def safe_np_load(npy_fpath, total_timeout=10000, time_frame=0.05, verbose=False)
         it does exist or your timeout is reached.
     '''
     start_time = time_utils.gtime()
-    wait_for_file_to_exist(npy_fpath, total_timeout=total_timeout, time_frame=time_frame)
+    if check_file_done_being_written_to:
+        wait_for_file_to_exist_and_written_to(npy_fpath, total_timeout=total_timeout, time_frame=time_frame)
+    else:
+        wait_for_file_to_exist(npy_fpath, total_timeout=total_timeout, time_frame=time_frame)
     if verbose:
         print('took {} seconds to wait for file to exist and written to according to the function wait_for_file_to_exist_and_written_to'.format(time_utils.gtime() - start_time))
         start_time_load = time_utils.gtime()
