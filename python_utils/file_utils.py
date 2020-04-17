@@ -362,7 +362,8 @@ def wait_for_file_to_vanish(fname, total_timeout=100000, time_frame=0.05, go_ahe
             else:
                 raise Exception('file ' + fname + ' still locked after a total of ' + str(total_timeout) + ' seconds')
 
-def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_frame=0.05):
+
+def wait_for_file_to_exist(fpath, total_timeout=100000, time_frame=0.05):
     '''
     fpath: str
         path to file to check
@@ -370,13 +371,26 @@ def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_fram
         total number of seconds before aborting the wait command
     time_frame: number
         number of seconds to wait between each check of file size.
-    Purpose: Wait until file exists and the filesize remains constant in
-        a given time frame.
+    Purpose: Wait until file exists for up to total_timeout seconds.
     '''
     start_time = time_utils.gtime()
     while not os.path.exists(fpath):
         if time_utils.gtime() - start_time > total_timeout:
             raise Exception('file ' + fpath + ' still DNE after a total of ' + str(total_timeout) + ' seconds')
+        time_utils.sleep(time_frame)
+
+
+def wait_for_file_to_be_written_to(fpath, total_timeout=100000, time_frame=0.05):
+    '''
+    fpath: str
+        path to file to check
+    total_timeout: number
+        total number of seconds before aborting the wait command
+    time_frame: number
+        number of seconds to wait between each check of file size.
+    Purpose: Wait until a file that exists to have its filesize remains constant in
+        a given time frame. It will not be constant if it is currently being written to.
+    '''
     while True:
         try:
             fsize = os.path.getsize(fpath)
@@ -392,6 +406,21 @@ def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_fram
         if time_utils.gtime() - start_time > total_timeout:
             raise Exception('file ' + fpath + ' still not done being written to after a total of ' + str(total_timeout) + ' seconds')
 
+
+def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_frame=0.05):
+    '''
+    fpath: str
+        path to file to check
+    total_timeout: number
+        total number of seconds before aborting the wait command
+    time_frame: number
+        number of seconds to wait between each check of file size.
+    Purpose: Wait until file exists and the filesize remains constant in
+        a given time frame. It will not be constant if it is currently being written to.
+    '''
+    wait_for_file_to_exist(fpath, total_timeout=total_timeout, time_frame=time_frame)
+    wait_for_file_to_be_written_to(fpath, total_timeout=total_timeout, time_frame=time_frame)
+    
 def fname_from_fpath(fpath, include_ext=False):
     '''
     fpath: str
@@ -474,7 +503,7 @@ def concatenate_files(flist, new_fpath, write_concatenated_file=True, return_lin
     if return_lines:
         return all_lines
 
-def safe_np_load(npy_fpath, total_timeout=10000, time_frame=0.05, verbose=False):
+def safe_np_load(npy_fpath, total_timeout=10000, time_frame=0.05, verbose=False, check_file_done_being_written_to=True):
     '''
     npy_fpath: str
         Path to file that is loadable by np.load()
@@ -488,6 +517,10 @@ def safe_np_load(npy_fpath, total_timeout=10000, time_frame=0.05, verbose=False)
     verbose: bool
         Whether to print some log info
 
+    check_file_done_being_written_to: bool
+        Whether to check file size to determine if the file is being written to
+        and thus unsafe to load.
+
     Return: np.array
         The contents of npy_fpath as loaded by np.load()
 
@@ -495,7 +528,10 @@ def safe_np_load(npy_fpath, total_timeout=10000, time_frame=0.05, verbose=False)
         it does exist or your timeout is reached.
     '''
     start_time = time_utils.gtime()
-    wait_for_file_to_exist_and_written_to(npy_fpath, total_timeout=total_timeout, time_frame=time_frame)
+    if check_file_done_being_written_to:
+        wait_for_file_to_exist_and_written_to(npy_fpath, total_timeout=total_timeout, time_frame=time_frame)
+    else:
+        wait_for_file_to_exist(npy_fpath, total_timeout=total_timeout, time_frame=time_frame)
     if verbose:
         print('took {} seconds to wait for file to exist and written to according to the function wait_for_file_to_exist_and_written_to'.format(time_utils.gtime() - start_time))
         start_time_load = time_utils.gtime()
