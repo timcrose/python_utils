@@ -7,7 +7,6 @@ Created on Tue Feb  6 19:26:58 2018
 
 from datetime import datetime
 from datetime import date
-from datetime import timedelta
 from time import sleep
 from time import mktime
 from time import time as gtime
@@ -16,7 +15,7 @@ from time import localtime
 from time import strftime
 from time import strptime
 
-def get_gtime_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p', start_date='01/01/1970, 04:00:00 am'):
+def get_timestamp_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p'):
     '''
     date_str: str
         String of date and time with format corresponding to date_fmt
@@ -24,19 +23,19 @@ def get_gtime_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p', start_da
     date_fmt: str
         Format string of date_str according to datetime documentation.
 
-    start_date: str
-        Date string corresponding to date_fmt of the date you would like to start counting from.
-
     Return: number
-        Number of seconds since the epoch, or since start_date.
+        Number of seconds since the epoch as measured by datetime.
     
-    Purpose: Get the number of seconds since the epoch given a date string
+    Purpose: Get the number of seconds since the epoch as measured by datetime when
+        
     '''
     dt = datetime.strptime(date_str, date_fmt)
-    dt_timestamp = dt.timestamp()
-    dt_start_date = datetime.strptime(start_date, date_fmt)
-    dt_start_date_timestamp = dt_start_date.timestamp()
-    return dt_timestamp - dt_start_date_timestamp
+    return dt.timestamp()
+
+def get_date_str_from_timestamp(timestamp, date_fmt):
+    dt = datetime.fromtimestamp(timestamp)
+    return dt.strftime(date_fmt)
+     
 
 def get_greg_time_from_time_str(time_str='00:00:00', ds=None, DATE_FMT='%Y-%m-%d', TIME_FMT='%H:%M:%S'):
 
