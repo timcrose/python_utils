@@ -391,6 +391,7 @@ def wait_for_file_to_be_written_to(fpath, total_timeout=100000, time_frame=0.05)
     Purpose: Wait until a file that exists to have its filesize remains constant in
         a given time frame. It will not be constant if it is currently being written to.
     '''
+    start_time = time_utils.gtime()
     while True:
         try:
             fsize = os.path.getsize(fpath)
