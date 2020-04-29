@@ -665,7 +665,7 @@ def write_h5_file(h5_fpath, data, attrs_dct={}, dset_name=None, overwrite=True, 
             dset.attrs[key] = attrs_dct[key]
 
 
-def read_h5_file(h5_fpath, dset_name=None, return_data=True, return_attrs=True):
+def read_h5_file(h5_fpath, row_start_idx=0, row_end_idx=None, col_start_idx=0, col_end_idx=None, dset_name=None, return_data=True, return_attrs=True):
     '''
     h5_fpath: str
         Path to .h5 file to read
@@ -697,9 +697,27 @@ def read_h5_file(h5_fpath, dset_name=None, return_data=True, return_attrs=True):
     with h5py.File(h5_fpath, 'r') as hf:
         dset = hf[dset_name]
         if return_data and return_attrs:
-            return dset[:], {key:dset.attrs[key] for key in dset.attrs}
+            if row_end_idx is None:
+                if col_end_idx is None:
+                    return dset[row_start_idx : , col_start_idx : ], {key:dset.attrs[key] for key in dset.attrs}
+                else:
+                    return dset[row_start_idx : , col_start_idx : col_end_idx + 1], {key:dset.attrs[key] for key in dset.attrs}
+            else:
+                if col_end_idx is None:
+                    return dset[row_start_idx : row_end_idx + 1, col_start_idx : ], {key:dset.attrs[key] for key in dset.attrs}
+                else:
+                    return dset[row_start_idx : row_end_idx + 1, col_start_idx : col_end_idx + 1], {key:dset.attrs[key] for key in dset.attrs}
         if return_data and not return_attrs:
-            return dset[:], None
+            if row_end_idx is None:
+                if col_end_idx is None:
+                    return dset[row_start_idx :, col_start_idx :], None
+                else:
+                    return dset[row_start_idx :, col_start_idx : col_end_idx + 1], None
+            else:
+                if col_end_idx is None:
+                    return dset[row_start_idx : row_end_idx + 1, col_start_idx :], None
+                else:
+                    return dset[row_start_idx : row_end_idx + 1, col_start_idx : col_end_idx + 1], None
         if not return_data and return_attrs:
             return None, {key:dset.attrs[key] for key in dset.attrs}
         if not return_data and not return_attrs:

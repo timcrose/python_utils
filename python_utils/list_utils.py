@@ -345,15 +345,15 @@ def range_float_incr(lower_bound, upper_bound, increment_value, include_lower_bo
     '''
 
     if include_lower_bound:
-        val = lower_bound
+        i = 0
     else:
-        val = lower_bound + increment_value
+        i = 1
     if include_upper_bound:
         max_val = upper_bound
     else:
         max_val = upper_bound - increment_value
     lst = []
-    i = 0
+    val = lower_bound + i * increment_value
     while val < max_val:
         val = lower_bound + i * increment_value
         lst.append(val)
@@ -390,3 +390,28 @@ def split_up_list_evenly(lst, num_partitions):
                 ] \
                 + [lst[num_remainder_tasks + (num_partitions - 1) * tasks_per_partition : num_remainder_tasks + num_partitions * tasks_per_partition]]
     return split_lst
+
+
+def moving_average(arr, period, dtype=np.float64):
+    '''
+    arr: 1D np.array
+        array of numbers over which to calculate a moving average
+
+    period: int
+        period must be >= 1 and is the number of elements at a time to take
+        the average of.
+
+    dtype: numpy type function
+        Type of resulting numbers in the returned array. Can be,
+        np.float32, np.float64, np.int32, etc
+
+    Return: ma
+        ma: np.array shape (len(arr) - period + 1,)
+            Moving average of values in arr.
+
+    Purpose: Calculate the simple arithmetic moving average of an array of numbers.
+    '''
+    ret = np.cumsum(arr)
+    ret[period:] = ret[period:] - ret[:-period]
+    ma = ret[period - 1:] / period
+    return dtype(ma)

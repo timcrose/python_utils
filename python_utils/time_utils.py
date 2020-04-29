@@ -32,7 +32,7 @@ def get_timestamp_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p'):
     dt = datetime.strptime(date_str, date_fmt)
     return dt.timestamp()
 
-def get_date_str_from_timestamp(timestamp, date_fmt):
+def get_date_str_from_timestamp(timestamp, date_fmt='%m/%d/%Y, %H:%M:%S'):
     dt = datetime.fromtimestamp(timestamp)
     return dt.strftime(date_fmt)
      
