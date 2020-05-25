@@ -723,3 +723,25 @@ def read_h5_file(h5_fpath, row_start_idx=0, row_end_idx=None, col_start_idx=0, c
             return None, {key:dset.attrs[key] for key in dset.attrs}
         if not return_data and not return_attrs:
             return None, None
+
+def grep_found_in_files(search_str, fpaths):
+    '''
+    search_str: str
+        If this string is found in an fpath, append fpath to list of files that the search string was found.
+        Else, append fpath to list of files that the search string was not found.
+    
+    fpaths: iterable of str
+        List of file paths which can be searched by opening them and reading the lines of the file.
+
+    Return: fpaths_containing_search_str, fpaths_not_containing_search_str
+        fpaths_containing_search_str: list of str
+            List of files in fpaths that contain search_str
+        fpaths_not_containing_search_str: list of str
+            List of files in fpaths that do not contain search_str
+
+    Purpose: Determine which files in fpaths contain search_str and which do not.
+    '''
+    _, found_fpaths = grep(search_str, fpaths, read_mode='r', fail_if_DNE=False, verbose=False, return_line_nums=False, return_fpaths=True)
+    fpaths_containing_search_str = set(found_fpaths)
+    fpaths_not_containing_search_str = set(fpaths) - fpaths_containing_search_str
+    return list(fpaths_containing_search_str), list(fpaths_not_containing_search_str)
