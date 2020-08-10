@@ -114,9 +114,27 @@ def check_input_var_type(var, desired_type, fail_gracefully=False, \
         True: The variable is of the desired type
         False: The variable is not of the desired type
 
-    Purpose: Check that a variable is of the desired type (which can include
-        any python type or 'file', 'path', 'dir', 'number').
+    Purpose: Check that a variable is of the desired type. This can include
+        any python type or
+        'file': Check for existent file path. Success if os.path.isfile(var)
+            returns True.
+        'path': Check for existent file path. Success if os.path.exists(var)
+            returns True.
+        'dir': Check for existent directory path. Success if os.path.isdir(var)
+            returns True.
+        'number': Check for a number of any type except str. Success if
+            isinstance(var, Number) returns True.
+        'nonstr_iterable': Check for an iterable variable that is not a string.
+            Success if hasattr(var, '__iter__') and not isinstance(var, str).
     '''
+    if hasattr(desired_type, '__iter__') and not isinstance(desired_type, str):
+        err_message = 'Error; desired_type must not be iterable if it is not'+\
+                ' a string. desired_type:', desired_type, 'type(desired_type'+\
+                ')', type(desired_type), 'Use the check_any_acceptable_type '+\
+                'function if you want var to be any type from a provided list.'
+
+        handle_error(e=TypeError, err_message=err_message, fail_gracefully=\
+                False, verbose=verbose)
 
     if desired_type == 'path':
         # We desire var to be any valid and existent file or directory path.
@@ -135,7 +153,7 @@ def check_input_var_type(var, desired_type, fail_gracefully=False, \
     if desired_type == 'file':
         # We desire var to be any valid and existent file (but not dir) path.
         err_message = 'Alert; wanted var to be existent file but got var =', var
-        return try_assign(os.path.isdir, var, fail_value=False,\
+        return try_assign(os.path.isfile, var, fail_value=False,\
                 err_message=err_message, fail_gracefully=fail_gracefully,\
                 verbose=verbose)
 
@@ -160,6 +178,25 @@ def check_input_var_type(var, desired_type, fail_gracefully=False, \
                     fail_gracefully=fail_gracefully, verbose=verbose)
 
             return False
+
+    if desired_type == 'nonstr_iterable':
+        if isinstance(var, str):
+            err_message = 'Alert; acceptable_type_lst was not a non-string '+\
+                    'iterable but should be. acceptable_type_lst =', \
+                    acceptable_type_lst, 'type(acceptable_type_lst) =', type(\
+                    acceptable_type_lst)
+
+            handle_error(e=TypeError, err_message=err_message, \
+                    fail_gracefully=fail_gracefully, verbose=verbose)
+
+            return False
+        if hasattr(var, '__iter__'):
+            return True
+
+    if isinstance(desired_type, str):
+        err_message = 'Error; Unsupported desired_type:', desired_type
+        handle_error(e=TypeError, err_message=err_message, fail_gracefully=\
+            False, verbose=verbose)
 
     # We desire var to be of desired_type type.
     if isinstance(var, desired_type):
@@ -217,6 +254,101 @@ def check_input_var_type_lst(var_type_lst, fail_gracefully=False,\
     # desired type.
     passed_checks = len(checks) == checks.count(True)
     return passed_checks
+
+
+def check_any_acceptable_type(var, acceptable_type_lst,\
+            fail_gracefully=False, verbose=False)):
+    
+    '''
+    var: ?
+        Variable whose type is desired to match one of the types in
+        acceptable_type_lst.
+        
+    acceptable_type_lst: flattened list
+        This is the list of types that var can have to be considered an
+        appropriate type for var. An error will be handled if the type of
+        var is not in acceptable_type_lst. The kinds of entries
+        in acceptable_type_lst must be any python type or 'file', 'path',
+        'dir', 'number', 'nonstr_iterable'.
+        
+    fail_gracefully: bool
+        True: Only print an error instead of raising an error if var is not
+            an instance of any type in acceptable_type_lst.
+        False: Raise an error if var is not an instance of any type in
+            acceptable_type_lst.
+
+    verbose: bool
+        True: Make sure err_message is printed if var is not an instance of
+            any type in acceptable_type_lst.
+        False: Do not print err_message if fail_gracefully is True and var is
+            not an instance of any type in acceptable_type_lst.
+            
+    Return: None
+    
+    Purpose: Check to make sure the variable var has a type of the ones listed
+        in acceptable_type_lst. Handle an error otherwise. The kinds of entries
+        in acceptable_type_lst must be any python type or 'file', 'path',
+        'dir', 'number', 'nonstr_iterable'.
+    '''
+    # Check type of input variables.
+    check_input_var_type(acceptable_type_lst, 'nonstr_iterable', \
+            fail_gracefully=False, verbose=verbose)
+    
+    for desired_type in acceptable_type_lst:
+        if check_input_var_type(var, desired_type, \
+                fail_gracefully=fail_gracefully, verbose=verbose):
+
+            return
+
+    err_message = 'The type of var was not in the list of desired types. var'\
+            + ':', var, 'type(var):', type(var), 'desired_types:', \
+            desired_types
+
+    handle_error(e=TypeError, err_message=err_message, fail_gracefully=\
+        fail_gracefully, verbose=verbose)
+
+
+def assert_gracefully(condition, err_message='assertion failed',\
+            fail_gracefully=False, verbose=False):
+    
+    '''
+    condition: bool
+        True: Return. The assertion succeeded.
+        False: The assertion failed. Raise an error if fail_gracefully is
+            False.
+        
+    err_message: str or tuple of str
+        Message to be printed out when handling the error if condition is
+        False.
+        
+    fail_gracefully: bool
+        True: Only print an error instead of raising an error if condition is
+            False.
+        False: Raise an error if condition is False.
+
+    verbose: bool
+        True: Make sure err_message is printed if condition is False.
+        False: Do not print err_message if condition is False and
+            fail_gracefully is True. 
+            
+    Return: None
+    
+    Purpose: Instead of the built-in assert function, use assert_gracefully to
+        allow writing custom and descriptive error messages. This function also
+        allows continuing program flow if the assertion fails by setting
+        fail_gracefully to True. The err_message is printed if the assertion
+        failed regardless if fail_gracefully is True if verbose is True.
+    '''
+    check_input_var_type(condition, bool, fail_gracefully=False, verbose=\
+            verbose)
+            
+    # If condition is True, then the assertion passes and nothing left to do.
+    if condition:
+        return
+    
+    # The assertion has failed so we will throw an error.
+    handle_error(e=AssertionError, err_message=err_message,\
+            fail_gracefully=fail_gracefully, verbose=verbose))
 
 
 def numeric_var_in_bounds(var, lower_bound, upper_bound, le=True, ge=True,\
