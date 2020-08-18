@@ -1,7 +1,87 @@
 import os
 import numpy as np
 from numbers import Number
+from inspect import getframeinfo, stack
 from python_utils import math_utils
+
+def print_iterable(iterable, idx, arg_name):
+    if isinstance(idx, slice) or isinstance(idx, int):
+        print(arg_name + '[' + str(idx) + ']', iterable[idx])
+    elif check_type_nonstr_iterable(idx):
+        results = [iterable[i] for i in idx]
+        print(arg_name + ' at indices', idx, 'is', results)
+
+
+def print_np_stat(arr, arg_name, stat):
+    print(stat.__name__ + '(' + arg_name + ')', stat(arr))
+    for i in range(len(arr.shape)):
+        print(stat.__name__ + '(' + arg_name + ', axis=' + str(i), \
+                stat(arr, axis=i))
+    print(stat.__name__ + '(' + arg_name + ')', stat(arr))
+    for i in range(len(arr.shape)):
+        print(stat.__name__ + '(' + arg_name + ', axis=' + str(i), \
+                stat(arr, axis=i))
+
+def print_arr_stats(arr, arg_name):
+    for stat in [np.min, np.max, np.mean, np.median, np.std]:
+        print_np_stat(stat, arr, arg_name)
+
+def trose_logging_decorator(wrapped_func):
+    def wrapper(*args, **kwargs):
+        # If 'trose_log_dct' not passed to wrapped_func, then dont do any
+        # logging.
+        if 'trose_log_dct' not in kwargs:
+            # Simply call the wrapped function and return its result.
+            result = wrapped_func(*args, **kwargs)
+            return result
+        # Set dct variables such that they take up less space in the code
+        # editor.
+        verbosity_level = kwargs['trose_log_dct']['verbosity_level']
+        str_idx = kwargs['trose_log_dct']['str_idx']
+        list_idx = kwargs['trose_log_dct']['list_idx']
+        arr_row_idx = kwargs['trose_log_dct']['arr_row_idx']
+        arr_col_idx = kwargs['trose_log_dct']['arr_col_idx']
+        if verbosity_level > 0:
+            print('log settings:', kwargs['trose_log_dct'])
+            caller = getframeinfo(stack()[1][0])
+            print(wrapped_func.__name__ + ' on line ' + \
+                    str(caller.lineno) + ' in ' + caller.filename)
+        # Iterate through the unnamed arguments to the wrapped function and 
+        # print various attributes depending on the verbosity level.
+        for i,arg in enumerate(args):
+            # Variables in args are unnamed but must have a particular order.
+            # Therefore, we will give it a name which is indexed.
+            arg_name = 'arg' + str(i)
+            if verbosity_level > 0:
+                print('type(' + arg_name + ')', type(arg))
+                if hasattr(arg, '__len__'):
+                    print('len(' + arg_name + ')', len(arg))
+                if isinstance(arg, str):
+                    print_iterable(arg, str_idx, arg_name)
+                elif isinstance(arg, list):
+                    print_iterable(arg, list_idx, arg_name)
+                elif isinstance(arg, np.ndarray):
+                    print(arg_name + '.shape', arg.shape)
+                    print(arg_name + '[' + str(arr_row_idx) + ', ' + \
+                            str(arr_col_idx) + ']', \
+                            arg[arr_row_idx, arr_col_idx])
+
+            if verbosity_level > 1:
+                if isinstance(arg, np.ndarray):
+                    print_arr_stats(arg, arg_name)
+            if verbosity_level > 2:
+                print('dir(' + arg_name + ')', dir(arg))
+
+        for kwarg in kwargs:
+
+        del kwargs['trose_log_dct']
+        try:
+            result = wrapped_func(*args, **kwargs)
+        except Exception as e:
+            raise(e)
+        return result
+    return wrapper
+
 
 def handle_error(e=None, err_message='Alert', fail_gracefully=False, 
                 verbose=False):
