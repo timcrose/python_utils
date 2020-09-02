@@ -634,7 +634,7 @@ def check_type_1D_numeric_arr(var, fail_gracefully=False, verbose=False):
                 True, verbose=verbose)
 
     if not is_1D_numeric_arr:
-        err_message = 'Alert; var was not a 1D array containing only numeric'+
+        err_message = 'Alert; var was not a 1D array containing only numeric'+\
                 'elements, but should be. var =', var, 'type(var) =', type(var)
 
         handle_error(e=TypeError, err_message=err_message, \
