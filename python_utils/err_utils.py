@@ -4,33 +4,164 @@ from numbers import Number
 from inspect import getframeinfo, stack
 from python_utils import math_utils
 
-def print_iterable(iterable, idx, arg_name):
+def print_iterable(iterable, idx, arg_name, verbosity_level):
+    '''
+    iterable: iterable
+        Object with __iter__ attribute.
+
+    idx: slice, int, nonstr_iterable
+        This specifies which indices of iterable to print. If nonstr_iterable
+        (non-string iterable), then each element of idx must be able to
+        index iterable because [interable[i] for i in idx] is printed.
+
+    arg_name: str
+        Name of the iterable argument (parameter name).
+
+    verbosity_level: int
+        All verbosity levels >= 1 will print iterable indexed by idx. Verbosity
+        levels > 1 will print the type of iterable[0] (iff iterable is
+        non-empty).
+
+    Return: None
+
+    Purpose: For logging or debugging purposes, print out info about an
+        iterable. This can include a slice of the iterable, a single
+        index of the iterable, or an iterable of slices or integers or other
+        indexing objects. Increasing verbosity_level allows one to print
+        the type of the first element of iterable.
+    '''
+    if verbosity_level < 1:
+        return
     if isinstance(idx, slice) or isinstance(idx, int):
         print(arg_name + '[' + str(idx) + ']', iterable[idx])
     elif check_type_nonstr_iterable(idx):
         results = [iterable[i] for i in idx]
         print(arg_name + ' at indices', idx, 'is', results)
+    if verbosity_level > 1:
+        if len(iterable) > 0 and not isinstance(iterable, str):
+            print('type(' + arg_name + '[0])', type(arg_name[0]))
 
 
 def print_np_stat(arr, arg_name, stat):
+    '''
+    arr: np.ndarray, shape: any
+        Print a statistic for this array along each available axis.
+    
+    arg_name: str
+        Name of the array argument (parameter name) of arr.
+
+    stat: function
+        Function to act on arr using a particular axis. Must have axis as a
+        parameter. This is usually intended for use with numpy functions
+        such as np.min, np.mean, etc.
+
+    Return: None
+
+    Purpose: Print a statistic about the input array, arr along each
+        available axis. For example, np.mean(arr, axis=0) and
+        np.mean(arr, axis=1) would be printed if arr is 2-dimensional.
+    '''
+    # Print the name of the statistical function, arg_name, and the statistic
+    # for the whole array (axis=None). e.g. np.sum(arr) returns the sum of 
+    # all elements in the possibly multi-dimensional array.
     print(stat.__name__ + '(' + arg_name + ')', stat(arr))
+    # The len(arr.shape) allows us to know how many axes arr has. Iterate over
+    # each axis and print the vlaue of the statistic over each axis. e.g.
+    # np.mean(arr, axis=0) returns the average of each column
     for i in range(len(arr.shape)):
         print(stat.__name__ + '(' + arg_name + ', axis=' + str(i), \
                 stat(arr, axis=i))
-    print(stat.__name__ + '(' + arg_name + ')', stat(arr))
-    for i in range(len(arr.shape)):
-        print(stat.__name__ + '(' + arg_name + ', axis=' + str(i), \
-                stat(arr, axis=i))
+    
 
 def print_arr_stats(arr, arg_name):
+    '''
+    arr: np.ndarray, shape: any
+        Print a statistic for this array along each available axis.
+    
+    arg_name: str
+        Name of the array argument (parameter name) of arr.
+
+    Return: None
+
+    Purpose: Print statistics for each axis in array arr. e.g.
+        np.mean(arr, axis=0) returns the average of each column. See below for
+        the list of stats. These typically include min, max, mean, median, std.
+    '''
     for stat in [np.min, np.max, np.mean, np.median, np.std]:
         print_np_stat(stat, arr, arg_name)
 
+
 def trose_logging_decorator(wrapped_func):
+    '''
+    wrapped_func: function
+        trose_logging_decorator is intended to be a decorator for wrapped_func.
+
+    Return: result
+        result: ?
+            result is the return value of wrapped_func
+
+    Purpose: This wrapper enables the debugging code in the actual script to be
+        very minimal and concise while still allowing one to print out all the
+        information one would want to see about the input variables to the
+        wrapped_func. Common information is printed such as length of
+        iterables, shapes of arrays, types and values of variables, particular
+        indices or slices of strings, lists, tuples, or arrays, particular
+        rows and columns (sub-matrix) of an array, as well as dir of each
+        variable if desired. The amount of information is roughly controlled
+        by setting verbosity_level. Verbosity level of 0 means just return the
+        result without printing anything. Higher verbosity levels prints more
+        information.
+        
+    How to use: All settings such as verbosity_level for how and what to
+        log are passed as a kwarg into wrapped_func in the following way:
+
+        wrapped_func(arg0, arg1, kwarg0=kwarg0, trose_log_dct=trose_log_dct)
+
+        where trose_log_dct is a dictionary of settings:
+        verbosity_level: int
+            0: Print nothing. Simply return result = 
+                wrapped_func(*args, **kwargs)
+
+            1: Print type information, length and shape, values of particular
+                elements of iterable variables, values of non-iterable
+                variables. (for all variables passed as args and kwargs to
+                wrapped_func).
+
+            2: In addition to (1), print statistics of np.arrays
+
+            3: In addition to (2), print dir(arg) for each arg and kwarg, and
+                print the trose_log_dct settings.
+
+        str_idx: slice, int, iterable of slice, or iterable of int
+            slice or int: use this to index each string arg and kwarg which is
+                what will be printed.
+
+            iterable of slice, or iterable of int: [string[i] for i in str_idx]
+                is printed for each arg and kwarg.
+
+        list_idx and tuple_idx: are similar to str_idx
+
+        arr_row_idx: int, slice, tuple of int, list of int, 1D np.array of int,
+            range, None
+
+            The index(es) of the row(s) to extract from arr if arr is a multi-
+            dimensional np.array. Or, the index(es) of the value(s) to extract
+            from arr if arr is a 1D np.array. If neither arr_row_idx nor
+            arr_col_idx are slice, int, tuple, or None, then 
+            arr[arr_row_idx, arr_col_idx] is printed. Else, the sub-matrix
+            arr[np.ix_(arr_row_idx, arr_col_idx)] is printed.
+
+    arr_col_idx: similar to arr_row_idx
+    '''
     def wrapper(*args, **kwargs):
-        # If 'trose_log_dct' not passed to wrapped_func, then dont do any
-        # logging.
+        # If 'trose_log_dct' not passed to wrapped_func as a kwarg, then dont
+        # do any logging.
         if 'trose_log_dct' not in kwargs:
+            # Simply call the wrapped function and return its result.
+            result = wrapped_func(*args, **kwargs)
+            return result
+        elif kwargs['trose_log_dct']['verbosity_level'] == 0:
+            del kwargs['trose_log_dct']
             # Simply call the wrapped function and return its result.
             result = wrapped_func(*args, **kwargs)
             return result
@@ -41,38 +172,65 @@ def trose_logging_decorator(wrapped_func):
         list_idx = kwargs['trose_log_dct']['list_idx']
         arr_row_idx = kwargs['trose_log_dct']['arr_row_idx']
         arr_col_idx = kwargs['trose_log_dct']['arr_col_idx']
-        if verbosity_level > 0:
-            print('log settings:', kwargs['trose_log_dct'])
-            caller = getframeinfo(stack()[1][0])
-            print(wrapped_func.__name__ + ' on line ' + \
-                    str(caller.lineno) + ' in ' + caller.filename)
+        tuple_idx = kwargs['trose_log_dct']['tuple_idx']
+        caller = getframeinfo(stack()[1][0])
+        # Print the wrapped_func name and line number that it was called in
+        # which file.
+        print(wrapped_func.__name__ + ' on line ' + \
+                str(caller.lineno) + ' in ' + caller.filename)
+
         # Iterate through the unnamed arguments to the wrapped function and 
         # print various attributes depending on the verbosity level.
-        for i,arg in enumerate(args):
+        for i,arg in enumerate(args + list(kwargs.keys())):
             # Variables in args are unnamed but must have a particular order.
             # Therefore, we will give it a name which is indexed.
-            arg_name = 'arg' + str(i)
-            if verbosity_level > 0:
-                print('type(' + arg_name + ')', type(arg))
-                if hasattr(arg, '__len__'):
-                    print('len(' + arg_name + ')', len(arg))
-                if isinstance(arg, str):
-                    print_iterable(arg, str_idx, arg_name)
-                elif isinstance(arg, list):
-                    print_iterable(arg, list_idx, arg_name)
-                elif isinstance(arg, np.ndarray):
-                    print(arg_name + '.shape', arg.shape)
+            if i < len(args):
+                arg_name = 'arg' + str(i)
+                arg_val = arg
+            else:
+                arg_name = arg
+                arg_val = kwargs[arg]
+            print('type(' + arg_name + ')', type(arg_val))
+            if hasattr(arg_val, '__len__'):
+                print('len(' + arg_name + ')', len(arg_val))
+            if isinstance(arg_val, str):
+                print_iterable(arg_val, str_idx, arg_name)
+            elif isinstance(arg_val, list):
+                print_iterable(arg_val, list_idx, arg_name)
+            elif isinstance(arg_val, np.ndarray):
+                print(arg_name + '.shape', arg_val.shape)
+                if isinstance(arr_row_idx, slice) or \
+                        isinstance(arr_col_idx, slice) or \
+                        isinstance(arr_row_idx, int) or \
+                        isinstance(arr_col_idx, int) or \
+                        isinstance(arr_row_idx, tuple) or \
+                        isinstance(arr_col_idx, tuple) or \
+                        arr_row_idx is None or \
+                        arr_col_idx is None:
+
                     print(arg_name + '[' + str(arr_row_idx) + ', ' + \
                             str(arr_col_idx) + ']', \
-                            arg[arr_row_idx, arr_col_idx])
+                            arg_val[arr_row_idx, arr_col_idx])
+                else:
+                    # Print the sub-matrix which is the intersection of rows
+                    # given by arr_row_idx and columns arr_col_idx
+                    print(arg_name + '[' + str(arr_row_idx) + ', ' + \
+                            str(arr_col_idx) + ']', \
+                            arg_val[np.ix_(arr_row_idx, arr_col_idx)])
 
+            elif isinstance(arg_val, tuple):
+                print_iterable(arg_val, tuple_idx, arg_name)
+            else:
+                # If not iterable and indexable, just print the arg value.
+                print(arg_name, arg_val)
             if verbosity_level > 1:
-                if isinstance(arg, np.ndarray):
-                    print_arr_stats(arg, arg_name)
+                if isinstance(arg_val, np.ndarray):
+                    # Print helpful statistics on the arr as a whole and also
+                    # on each axis (if more than 1).
+                    print_arr_stats(arg_val, arg_name)
             if verbosity_level > 2:
-                print('dir(' + arg_name + ')', dir(arg))
-
-        for kwarg in kwargs:
+                print('dir(' + arg_name + ')', dir(arg_val))
+                print('log settings:', kwargs['trose_log_dct'])
 
         del kwargs['trose_log_dct']
         try:
