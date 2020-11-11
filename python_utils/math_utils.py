@@ -6,6 +6,7 @@ Created on Sun Apr  1 16:29:48 2018
 """
 
 import math, random
+import numpy as np
 from decimal import Decimal, ROUND_HALF_UP, ROUND_HALF_DOWN
 
 def round_nearest_multiple(number, a, direction='standard'):
