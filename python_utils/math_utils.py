@@ -18,10 +18,12 @@ def round_nearest_multiple(number, a, direction='standard'):
     elif direction == 'up':
         return round(math.ceil(number / a) * a, -int(math.floor(math.log10(a))))
     elif direction == 'standard':
-        return round(round(number / a) * a, -int(math.floor(math.log10(a))))
+        return round(number, -int(math.floor(math.log10(a))))
+
 
 def mean(lst):
     return sum(lst) / float(len(lst))
+
 
 def round(number, num_decimal_places, leave_int=False):
     '''
@@ -45,8 +47,10 @@ def round(number, num_decimal_places, leave_int=False):
         decimal_str += '1'
     return float(Decimal(str(number)).quantize(Decimal(decimal_str), rounding=ROUND_HALF_UP))
 
+
 def randrange_float(start, stop, step, num_decimal_places=4):
     return round(random.randint(0, int((stop - start) / step)) * step + start, num_decimal_places)
+
 
 def round_matrix(matrix, num_decimal_places, leave_int=False):
     '''
@@ -67,6 +71,7 @@ def round_matrix(matrix, num_decimal_places, leave_int=False):
         for j in range(len(matrix[0])):
             matrix[i][j] = round(matrix[i][j], num_decimal_places, leave_int=leave_int)
     return matrix
+
 
 def round_lst(lst, num_decimal_places, leave_int=False):
     '''
@@ -117,4 +122,5 @@ def r_sqrd(x, y):
     residuals = y - y_pred
     tot = y - y_mean
     return 1.0 - residuals.dot(residuals) / tot.dot(tot)
+
     
