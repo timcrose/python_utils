@@ -47,10 +47,6 @@ def write_pickle(fpath, data, fail_gracefully=False, verbose=False):
 
     Notes: The .pickle file will be loadable by pickle.load()
     '''
-    vars_type_list = [[fpath, 'non-existent file'], [data, 'python object'], 
-                        [fail_gracefully, 'bool'], [verbose, 'bool']]
-    err_utils.check_input_vars(vars_type_list)
-
     # Write the python object data to the file with path fpath
     try:
         with open(fpath, "wb") as pickle_out:
