@@ -244,7 +244,7 @@ def poly1d_fit(x, y, degree, get_r_sqrd=True, get_local_maximums=False,
                 Polynomial object. Use it like a function. e.g. p(x) where x 
                 is a list returns a list of output values.
 
-            "r_sqrd": float
+            "r_squared": float
                 Pearson correlation of the fitted polynomial to the data.
 
             "x_max": list of float
