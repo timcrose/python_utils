@@ -356,7 +356,7 @@ def range_float_incr(lower_bound, upper_bound, increment_value, include_lower_bo
         max_val = upper_bound - increment_value
     lst = []
     val = lower_bound + i * increment_value
-    while val < max_val:
+    while val <= max_val:
         lst.append(math_utils.round_nearest_multiple(val, increment_value))
         i += 1
         val = lower_bound + i * increment_value
