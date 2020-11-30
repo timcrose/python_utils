@@ -16,17 +16,22 @@ def output_from_rank(message_args, rank, mode='a', output_fpath_prefix='output_f
           print(message_args, file=f)
 
 
-def find(start_path, name_search_str=None, recursive=True, \
+def find(start_paths, name_search_str=None, recursive=True, \
         absolute_paths=False, clean_format=True, find_files=True, \
         find_dirs=True):
     '''
-    start_path: str
+    start_paths: str or list of str
         Path of a directory from which search for files begins. If start_path
         contains a '*', then the returned list will include paths found
         starting from any directory matching the pattern. The start_path
         may be a relative path such as 'dir' and 'dir/dir'. See Params
         description below for detailed return values based on start_path and 
         name_search_str and recursive combinations.
+
+        If start_path is a list of paths to directories, then files matching
+        name_search_str will be searched for starting from all directories in
+        this list.
+        
 
     name_search_str: str or None
         Path name search pattern which may include '*' and may be relative. So,
@@ -182,58 +187,63 @@ def find(start_path, name_search_str=None, recursive=True, \
         Includes files if find_files and directories if find_dirs.
 
     Purpose: Similar to the bash find function. Find a list of paths that
-            originate from directories matching the start_path pattern and 
-            match the name_search_str pattern and recursively according to
+            originate from directories matching the pattern(s) in start_paths 
+            and match the name_search_str pattern and recursively according to
             recursive. Clean up path names or provide absolute paths if
             desired.
 
     Methodology: Use the glob.glob function.
     '''
-    if name_search_str is None:
-        # When name_search_str is not None, we want to find all files and dirs
-        # in dirs matching start_path pattern either only in those matching
-        # dirs if recursive is False or in all sub-directories of those 
-        # matching too if recursive is True.
-        if recursive:
-            # The ** notation combined with recursive=True is glob's fancy
-            # notation for searching all directories matching start_path
-            # recursively.
-            path_lst = glob(os.path.join(start_path, '**'), recursive=True)
+    if type(start_paths) is str:
+        start_paths = [start_paths]
+    path_lsts = []
+    for start_path in start_paths:
+        if name_search_str is None:
+            # When name_search_str is not None, we want to find all files and dirs
+            # in dirs matching start_path pattern either only in those matching
+            # dirs if recursive is False or in all sub-directories of those 
+            # matching too if recursive is True.
+            if recursive:
+                # The ** notation combined with recursive=True is glob's fancy
+                # notation for searching all directories matching start_path
+                # recursively.
+                path_lst = glob(os.path.join(start_path, '**'), recursive=True)
+            else:
+                # recursive is False so just get all files and dirs in the first
+                # level of dirs matching the start_path pattern.
+                path_lst = glob(os.path.join(start_path, '*'))
         else:
-            # recursive is False so just get all files and dirs in the first
-            # level of dirs matching the start_path pattern.
-            path_lst = glob(os.path.join(start_path, '*'))
-    else:
-        # When name_search_str is not None, we want to find all files and dirs
-        # matching name_search_str pattern in dirs matching start_path pattern
-        # either only in those matching dirs if recursive is False or in all
-        # sub-directories of those matching too if recursive is True.
-        if recursive:
-            # The ** notation combined with recursive=True is glob's fancy
-            # notation for searching all directories matching start_path
-            # recursively.
-            path_lst = glob(os.path.join(start_path, '**', name_search_str), \
-                            recursive=True)
-        else:
-            # recursive is False so just get all files and dirs matching
-            # the name_search_str pattern in the first level of dirs matching
-            # the start_path pattern.
-            path_lst = glob(os.path.join(start_path, name_search_str))
-    if not find_files:
-        # If we don't want to return files, remove any file paths found.
-        path_lst = [path for path in path_lst if not os.path.isfile(path)]
-    if not find_dirs:
-        # If we don't want to return dirs, remove any dir paths found.
-        path_lst = [path for path in path_lst if not os.path.isdir(path)]
-    if absolute_paths:
-        # Convert all paths to absolute paths.
-        path_lst = [os.path.abspath(path) for path in path_lst]
-    elif clean_format:
-        # If absolute_paths, no need to clean b/c they will already be clean.
-        # Clean paths so they don't have './' prepended or '/.' or '/' appended
-        from python_utils.file_utils import format_all_paths_cleanly
-        path_lst = format_all_paths_cleanly(path_lst)
-    return path_lst
+            # When name_search_str is not None, we want to find all files and dirs
+            # matching name_search_str pattern in dirs matching start_path pattern
+            # either only in those matching dirs if recursive is False or in all
+            # sub-directories of those matching too if recursive is True.
+            if recursive:
+                # The ** notation combined with recursive=True is glob's fancy
+                # notation for searching all directories matching start_path
+                # recursively.
+                path_lst = glob(os.path.join(start_path, '**', name_search_str), \
+                                recursive=True)
+            else:
+                # recursive is False so just get all files and dirs matching
+                # the name_search_str pattern in the first level of dirs matching
+                # the start_path pattern.
+                path_lst = glob(os.path.join(start_path, name_search_str))
+        if not find_files:
+            # If we don't want to return files, remove any file paths found.
+            path_lst = [path for path in path_lst if not os.path.isfile(path)]
+        if not find_dirs:
+            # If we don't want to return dirs, remove any dir paths found.
+            path_lst = [path for path in path_lst if not os.path.isdir(path)]
+        if absolute_paths:
+            # Convert all paths to absolute paths.
+            path_lst = [os.path.abspath(path) for path in path_lst]
+        elif clean_format:
+            # If absolute_paths, no need to clean b/c they will already be clean.
+            # Clean paths so they don't have './' prepended or '/.' or '/' appended
+            from python_utils.file_utils import format_all_paths_cleanly
+            path_lst = format_all_paths_cleanly(path_lst)
+        path_lsts += path_lst
+    return path_lsts
 
 
 def grep_dir_recursively(search_str, dir_path, read_mode):
