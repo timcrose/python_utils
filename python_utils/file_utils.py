@@ -228,7 +228,7 @@ def rm_str(path, fail_if_cant_rm=False, verbose=True):
         try:
             shutil.rmtree(path)
         except OSError:
-            if not fail_if_cant_rm:
+            if (not fail_if_cant_rm) and verbose:
                 print('path ' + path + ' DNE. Skipping.')
             else:
                 raise OSError('path ' + path + ' DNE unexpectedly')
@@ -236,7 +236,7 @@ def rm_str(path, fail_if_cant_rm=False, verbose=True):
         try:
             os.remove(path)
         except:
-            if not fail_if_cant_rm:
+            if (not fail_if_cant_rm) and verbose:
                 print('path ' + path + ' DNE. Skipping.')
             else:
                 raise OSError('path ' + path + ' DNE unexpectedly')
@@ -741,3 +741,16 @@ def grep_found_in_files(search_str, fpaths):
     fpaths_containing_search_str = set(found_fpaths)
     fpaths_not_containing_search_str = set(fpaths) - fpaths_containing_search_str
     return list(fpaths_containing_search_str), list(fpaths_not_containing_search_str)
+
+
+def get_dir_size(dir_path, recursive=True, lowmem=False):
+    fpaths = file_utils.find(dir_path, '*', find_dirs=False, 
+            recursive=recursive)
+    
+    if lowmem:
+        total_size = 0
+        for fpath in fpaths:
+            total_size += os.path.getsize(fpath)
+    else:
+        total_size = np.sum([os.path.getsize(fpath) for fpath in fpaths])
+    return total_size

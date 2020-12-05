@@ -5,8 +5,7 @@ Created on Tue Feb  6 19:26:58 2018
 @author: timcrose
 """
 
-from datetime import datetime
-from datetime import date
+import datetime
 from time import sleep
 from time import mktime
 from time import time as gtime
@@ -21,19 +20,19 @@ def get_timestamp_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p'):
         String of date and time with format corresponding to date_fmt
 
     date_fmt: str
-        Format string of date_str according to datetime documentation.
+        Format string of date_str according to datetime.datetime.datetime.datetime documentation.
 
     Return: number
-        Number of seconds since the epoch as measured by datetime.
+        Number of seconds since the epoch as measured by datetime.datetime.
     
-    Purpose: Get the number of seconds since the epoch as measured by datetime when
+    Purpose: Get the number of seconds since the epoch as measured by datetime.datetime when
         
     '''
-    dt = datetime.strptime(date_str, date_fmt)
+    dt = datetime.datetime.strptime(date_str, date_fmt)
     return dt.timestamp()
 
 def get_date_str_from_timestamp(timestamp, date_fmt='%m/%d/%Y, %H:%M:%S'):
-    dt = datetime.fromtimestamp(timestamp)
+    dt = datetime.datetime.fromtimestamp(timestamp)
     return dt.strftime(date_fmt)
      
 
@@ -41,9 +40,9 @@ def get_greg_time_from_time_str(time_str='00:00:00', ds=None, DATE_FMT='%Y-%m-%d
 
     if ds is None:
         #default to today
-        ds = datetime.today().strftime(DATE_FMT)
+        ds = datetime.datetime.today().strftime(DATE_FMT)
         
-    dtt = datetime.strptime(ds + ' ' + time_str, DATE_FMT + ' ' + TIME_FMT)
+    dtt = datetime.datetime.strptime(ds + ' ' + time_str, DATE_FMT + ' ' + TIME_FMT)
     greg_time = float(mktime(dtt.timetuple()))
 
     return greg_time
@@ -56,7 +55,7 @@ def get_secs_from_time_str(time_str='00:00:00', TIME_FMT='%H:%M:%S'):
 def get_greg_from_mdYHMS(mon, day, yr, hr, minute, sec):
     fmt = '%m-%d-%Y %H:%M:%S'
     s = str(mon).zfill(2) + '-'  + str(day).zfill(2) + '-' + str(yr).zfill(4) + ' ' + str(hr).zfill(2) + ':' + str(minute).zfill(2) + ':' + str(int(sec)).zfill(2)
-    dt = datetime.strptime(s, fmt)
+    dt = datetime.datetime.strptime(s, fmt)
     tt = dt.timetuple()
     greg_time = mktime(tt)
     return greg_time
@@ -73,21 +72,21 @@ def delay_start(time_of_day_to_start):
     sleep(delay_time)
     
 def get_now_MM_DD_YYYY():
-    return str(datetime.now().month) + '_' + str(datetime.now().day) + '_' + str(datetime.now().year)
+    return str(datetime.datetime.now().month) + '_' + str(datetime.datetime.now().day) + '_' + str(datetime.datetime.now().year)
 
 
 def wait_til_weekday(time_of_day_to_start='09:00:00'):
-    weekno = datetime.today().weekday()
+    weekno = datetime.datetime.today().weekday()
 
     #Monday is 0 and Sunday is 6
     while not ((weekno in range(5)) and gtime() < get_greg_time_from_time_str(time_str=time_of_day_to_start)):
         sleep(3666)
-        weekno = datetime.today().weekday()
+        weekno = datetime.datetime.today().weekday()
 
 
 def wait_til_weekday_old(time_of_day_to_start='09:15:00'):
-    weekno = datetime.today().weekday()
-    weekno_original = datetime.today().weekday()
+    weekno = datetime.datetime.today().weekday()
+    weekno_original = datetime.datetime.today().weekday()
 
     if weekno_original == 4:
         start_time_greg = get_greg_time_from_time_str(time_str=time_of_day_to_start)
@@ -104,7 +103,7 @@ def wait_til_weekday_old(time_of_day_to_start='09:15:00'):
     #But if we started the program on Friday morning (before the requested start time), then we should also allow it to exit the loop
     while weekno not in [0, 1, 2, 3]:
         sleep(3666)
-        weekno = datetime.today().weekday()
+        weekno = datetime.datetime.today().weekday()
 
 
 def get_date_time_str_from_greg(greg):
@@ -122,7 +121,7 @@ def day_of_week_from_date_str(date_str, delim='_'):
     day-of-the-week number 0 - 6 where 0 is Monday, 6 is Sunday
     '''
     month, day, year = [int(i) for i in date_str.split(delim)]
-    born = date(year, month, day)
+    born = datetime.date(year, month, day)
     #return born.strftime('%A') Day name like "Sunday"
     return born.weekday()
 
@@ -130,8 +129,29 @@ def get_date_str_from_today(delimiter='_'):
     '''
     month day year format
     '''
-    month = str(datetime.today().month)
-    dy = str(datetime.today().day)
-    year = str(datetime.today().year)
+    month = str(datetime.datetime.today().month)
+    dy = str(datetime.datetime.today().day)
+    year = str(datetime.datetime.today().year)
     date_str = month + delimiter + dy + delimiter + year
     return date_str
+
+
+def timedelta(dt, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0, months=0, years=0):
+    if months != int(months):
+        raise ValueError('months must be a whole number. Got months = ', months)
+    if years != int(years):
+        raise ValueError('years must be a whole number. Got years = ', years)
+    years = int(years)
+    months = int(months)
+    dt += datetime.timedelta(days=days, seconds=seconds, microseconds=microseconds, milliseconds=milliseconds, minutes=minutes, hours=hours, weeks=weeks)
+    months = months + dt.month
+    num_years_to_add = ((months - 1) - ((months - 1) % 12)) / 12
+    years += num_years_to_add
+    year = int(dt.year + years)
+    month = int(((months - 1) % 12) + 1)
+    dt = datetime.datetime(year, month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond)
+    return dt
+
+
+
+
