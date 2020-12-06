@@ -744,7 +744,7 @@ def grep_found_in_files(search_str, fpaths):
 
 
 def get_dir_size(dir_path, recursive=True, lowmem=False):
-    fpaths = file_utils.find(dir_path, '*', find_dirs=False, 
+    fpaths = find(dir_path, '*', find_dirs=False, 
             recursive=recursive)
     
     if lowmem:
