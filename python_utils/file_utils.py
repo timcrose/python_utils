@@ -743,14 +743,27 @@ def grep_found_in_files(search_str, fpaths):
     return list(fpaths_containing_search_str), list(fpaths_not_containing_search_str)
 
 
-def get_dir_size(dir_path, recursive=True, lowmem=False):
+def get_dir_size(dir_path, recursive=True, lowmem=False, fail_if_DNE=False):
     fpaths = find(dir_path, '*', find_dirs=False, 
             recursive=recursive)
     
-    if lowmem:
+    if lowmem and fail_if_DNE:
         total_size = 0
         for fpath in fpaths:
             total_size += os.path.getsize(fpath)
+    elif fail_if_DNE:
+        total_size = 0
+        for fpath in fpaths:
+            try:
+                total_size += os.path.getsize(fpath)
+            except:
+                continue
     else:
         total_size = np.sum([os.path.getsize(fpath) for fpath in fpaths])
     return total_size
+
+
+
+
+
+
