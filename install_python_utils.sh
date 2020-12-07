@@ -1,1 +1,1 @@
-cp *.py $py_ut
+cp python_utils/*.py $py_ut

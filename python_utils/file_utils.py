@@ -258,7 +258,13 @@ def rm(paths, fail_if_cant_rm=False, verbose=True):
     for path in paths:
         if type(path) is not str:
             raise ValueError('path must be a string. path:', path)
-        rm_str(path, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
+        if '*' in path:
+            sub_paths = glob(path)
+            for sub_path in sub_paths:
+                rm_str(sub_path, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
+        else:
+            rm_str(path, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
+            
 
 def mv(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=True, overwrite=True):
     if type(dest_dir) is not str:
