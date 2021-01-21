@@ -418,3 +418,35 @@ def moving_average(arr, period, dtype=np.float64):
     ret[period:] = ret[period:] - ret[:-period]
     ma = ret[period - 1:] / period
     return dtype(ma)
+
+
+def equal_frequency_bins(arr, nbin):
+    '''
+    arr: sortable 1D iterable
+        Array of numbers to perform frequency binning on.
+    
+    nbin: int
+        The number of partitions (bins) to create.
+    
+    Returns
+    -------
+    equal_frequency_bin_edges: np.array shape (nbin + 1, )
+        Values that are the edges for all bins such that all bins have approximately equal number of
+        observations (data points) in them.
+        e.g.
+        arr = [1,2,3,4,5]
+        nbin = 3
+        equal_frequency_bin_edges = [1.0, 2.66666667, 4.33333333, 5.0] because then bin 0 contains 2 points: 1,2;
+        bin 1 contains 2 points: 3,4; bin 2 contains 1 point: 5, and so the bins are approximately equally populated.
+
+    Purpose
+    -------
+    This function creates bins for a group of observations such that each bin contains approximately the same number
+    of observations (data points). This is useful for when, you need to focus your efforts on areas of higher density.
+    For example, in Q-learning, you need to create a Q-table that partitions the state space. However, some regions
+    of a particular feature could be highly populated while others are sparse. To simply split up the space for this
+    feature into equidistant bins would mean a lot of unnecessary states and thus a lot of useless computation.
+    '''
+    nlen = len(arr)
+    equal_frequency_bin_edges = np.interp(np.linspace(0, nlen, nbin + 1), np.arange(nlen), np.sort(arr))
+    return equal_frequency_bin_edges
