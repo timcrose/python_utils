@@ -1,5 +1,78 @@
 from python_utils import list_utils
 
+# Edit this list of characters as desired.
+BASE_ALPH = tuple("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`~!@#$%^&*()-=[]\;',./_+{}|:<>?" + '"')
+BASE_DICT = dict((c, v) for v, c in enumerate(BASE_ALPH))
+BASE_LEN = len(BASE_ALPH)
+
+def base_encode(string, base_dct=None):
+    '''
+    string: str
+        String that you want to encode into a number.
+
+    base_dct: dict
+        Keys are the characters in the alphabet (list of characters included in the encoding mapping).
+        Values are the index of the character in the list.
+        e.g.
+        if BASE_ALPHA = tuple("abcd") then base_dct should be
+        {'a':0,'b':1,'c':2,'d':3}
+
+    Return
+    ------
+    num: int
+        Number that is the encoded version of the string.
+
+    Purpose
+    -------
+    Convert string into an integer using a particular alphabet (list of characters) such that a unique
+    integer exists for every string made up of characters from the "alphabet".
+    '''
+    num = 0
+    if base_dct is not None:
+        base_len = len(base_dct)
+        for char in string:
+            num = num * base_len + base_dct[char]
+        return num
+    else:
+        for char in string:
+            num = num * BASE_LEN + BASE_DICT[char]
+        return num
+
+
+def base_decode(num, base_alphabet=None):
+    '''
+    num: int
+        Number that is the encoded version of the string that you want to decode (turn into the string).
+
+    base_alphabet: tuple
+        Tuple of characters that was used in the base_dct when the string was encoded into num.
+        e.g.
+        tuple("abcd2") would include all strings made up of characters a, b, c, d, and 2.
+
+    Return
+    ------
+    decoded_str: str
+        String that was encoded into num using base_alphabet.
+
+    Purpose
+    -------
+    Once a string has been encoded into an integer (using a particular base_alphabet), use this function to 
+    get back the original string (using the same base_alphabet).
+    '''
+    decoded_str = ""
+    if base_alphabet is not None:
+        base_len = len(base_alphabet)
+        while num:
+            num, rem = divmod(num, base_len)
+            decoded_str = base_alphabet[rem] + decoded_str
+        return decoded_str
+    else:
+        while num:
+            num, rem = divmod(num, BASE_LEN)
+            decoded_str = BASE_ALPH[rem] + decoded_str
+        return decoded_str
+
+
 def find_nth_occurrence_in_str(input_str, search_str, n, reverse=False, overlapping=0):
     if reverse:
         match = input_str.rfind(search_str)
@@ -13,6 +86,49 @@ def find_nth_occurrence_in_str(input_str, search_str, n, reverse=False, overlapp
             match = input_str.find(search_str, match + len(search_str) ** overlapping)
             n -= 1
         return match
+
+
+def encode_lst_to_ascii(lst_of_str):
+    '''
+    lst_of_str: list of str
+        List of python strings that you want to encode into an ascii object
+
+    Return
+    ------
+    lst_of_ascii_str: list of ascii-encoded strings
+        List of asci-encoded strings.
+
+    Purpose
+    -------
+    Encode each string in lst_of_str into its acii encoding using the built-in encode function.
+    This is useful when trying to write a list of strings to the attrs_dct of a .h5 file.
+
+    Notes
+    -----
+    1. Decode with decode_lst_of_ascii
+    '''
+    lst_of_ascii_str = [strng.encode('ascii', 'ignore') for strng in lst_of_str]
+    return lst_of_ascii_str
+
+
+def decode_lst_of_ascii(lst_of_ascii_str):
+    '''
+    lst_of_ascii_str: list of ascii-encoded strings
+        List of ascii-encoded strings.
+
+    Return
+    ------
+    lst_of_str: list of str
+        List of python strings that you had previously encoded into ascii strings
+
+    Purpose
+    -------
+    Use this function on a list of strings that have been encoded with the function encode_lst_to_ascii
+    in order to get what the original strings were before the encoding.
+    '''
+    lst_of_str = [ascii_str.decode() for ascii_str in lst_of_ascii_str]
+    return lst_of_str
+
 
 def str_item_insert(string, item, i, after=True):
     '''
