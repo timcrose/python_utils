@@ -1,7 +1,7 @@
 from python_utils import list_utils
 
 # Edit this list of characters as desired.
-BASE_ALPH = tuple("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`~!@#$%^&*()-=[]\;',./_+{}|:<>?" + '"')
+BASE_ALPH = tuple("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`~!@#$%^&*()-=[]\;',./_+{}|:<>?")
 BASE_DICT = dict((c, v) for v, c in enumerate(BASE_ALPH))
 BASE_LEN = len(BASE_ALPH)
 
