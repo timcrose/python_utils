@@ -21,6 +21,7 @@ else:
     print('python version below 2.0, potential for some unsupported ' +
         'functions')
 
+
 def write_pickle(fpath, data, fail_gracefully=False, verbose=False):
     '''
     fpath: str
@@ -111,6 +112,7 @@ def get_lines_of_file(fname, mode='r'):
         lines = f.readlines()
     return lines
 
+
 def grep_single_file(search_str, fpath, read_mode, verbose=False):
     try:
         lines = get_lines_of_file(fpath, mode=read_mode)
@@ -137,6 +139,7 @@ def grep_str(search_str, path, read_mode, fail_if_DNE=False, verbose=False):
         return [], [], []
     else:
         raise FileNotFoundError('path DNE: ', path)
+
 
 def grep(search_str, paths, read_mode='r', fail_if_DNE=False, verbose=False, return_line_nums=False, return_fpaths=False):
     found_lines = []
@@ -167,18 +170,22 @@ def grep(search_str, paths, read_mode='r', fail_if_DNE=False, verbose=False, ret
     else:
         return found_lines
 
+
 def read_file(fpath, mode='r'):
     with open(fpath, mode) as f:
         file_contents = f.read()
     return file_contents
 
+
 def write_lines_to_file(fpath, lines, mode='w'):
     with open(fpath, mode) as f:
         f.writelines(lines)
 
+
 def mkdir_if_DNE(path):
     if not os.path.isdir(path):
         os.makedirs(path)
+
 
 def cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=False, verbose=True, overwrite=True):
     if type(src_path) is str:
@@ -208,6 +215,7 @@ def cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=False, verbose=Tr
     else:
         raise Exception('needed str input. src_path: ', src_path)
 
+
 def cp(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=True, overwrite=True):
     if type(dest_dir) is not str:
         raise ValueError('destination path must be a str. dest_dir: ', dest_dir)
@@ -222,6 +230,7 @@ def cp(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=T
         raise TypeError('src must be of type str or iterable. src_paths_list: ', src_paths_list)
     for src_path in src_paths_list:
         cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose, overwrite=overwrite)
+
 
 def rm_str(path, fail_if_cant_rm=False, verbose=True):
     if os.path.isdir(path):
@@ -244,6 +253,7 @@ def rm_str(path, fail_if_cant_rm=False, verbose=True):
         raise OSError('cannot rm because path DNE :' + path)
     elif verbose:
         print('path ' + path + ' DNE. Skipping.')
+
 
 def rm(paths, fail_if_cant_rm=False, verbose=True):
     if type(paths) is str:
@@ -274,6 +284,7 @@ def mv(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=T
     cp(src_paths_list, dest_dir, dest_fname=dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose, overwrite=overwrite)
     rm(src_paths_list, fail_if_cant_rm=False, verbose=True)
 
+
 def rms(paths, fail_if_cant_rm=False, verbose=True):
     '''
     safe rm
@@ -287,6 +298,7 @@ def rms(paths, fail_if_cant_rm=False, verbose=True):
             mv(path, trash_path, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
     else:
         raise ValueError('paths must be a string of one path or an iterable of paths which are strings. paths:', paths)
+
 
 def read_csv(path,mode='r', map_type=None, dtype=None):
     red_csv = []
@@ -307,6 +319,7 @@ def read_csv(path,mode='r', map_type=None, dtype=None):
         red_csv = np.array(red_csv, dtype=dtype)
 
     return red_csv
+
     
 def write_dct_to_json(path, dct, indent=4, dump_type='dump'):
     if path[-5:] != '.json':
@@ -321,6 +334,7 @@ def write_dct_to_json(path, dct, indent=4, dump_type='dump'):
         elif dump_type == 'dumps':
             json.dumps(dct, f, indent=indent)
 
+
 def get_dct_from_json(path, load_type='load'):
     if path[-5:] != '.json':
         raise Exception('path must have .json extension. path:', path)
@@ -332,6 +346,7 @@ def get_dct_from_json(path, load_type='load'):
             dct = json.loads(dct, f)
 
     return dct
+
 
 def write_to_file(fname, str_to_write, mode='w'):
     '''
@@ -347,10 +362,12 @@ def write_to_file(fname, str_to_write, mode='w'):
     with open(fname, mode=mode) as f:
         f.write(str_to_write)
 
-def lock_file(fname, total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False):
+
+def lock_file(fname, message='locked', total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False):
     wait_for_file_to_vanish(fname, total_timeout=total_timeout, time_frame=time_frame,  go_ahead_if_out_of_time=go_ahead_if_out_of_time)
     with open(fname, 'w') as f:
-        f.write('locked')
+        f.write(message)
+
 
 def wait_for_file_to_vanish(fname, total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False):
     start_time = time_utils.gtime()
@@ -423,6 +440,7 @@ def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_fram
     '''
     wait_for_file_to_exist(fpath, total_timeout=total_timeout, time_frame=time_frame)
     wait_for_file_to_be_written_to(fpath, total_timeout=total_timeout, time_frame=time_frame)
+    
     
 def fname_from_fpath(fpath, include_ext=False):
     '''
@@ -505,6 +523,7 @@ def concatenate_files(flist, new_fpath, write_concatenated_file=True, return_lin
         write_lines_to_file(new_fpath, all_lines)
     if return_lines:
         return all_lines
+
 
 def safe_np_load(npy_fpath, total_timeout=10000, time_frame=0.05, verbose=False, check_file_done_being_written_to=True):
     '''
@@ -725,6 +744,7 @@ def read_h5_file(h5_fpath, row_start_idx=0, row_end_idx=None, col_start_idx=0, c
             return None, {key:dset.attrs[key] for key in dset.attrs}
         if not return_data and not return_attrs:
             return None, None
+
 
 def grep_found_in_files(search_str, fpaths):
     '''
