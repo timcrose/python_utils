@@ -149,7 +149,12 @@ def timedelta(dt, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, 
     years += num_years_to_add
     year = int(dt.year + years)
     month = int(((months - 1) % 12) + 1)
-    dt = datetime.datetime(year, month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond)
+    if type(dt) == datetime.datetime:
+        dt = datetime.datetime(year, month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond)
+    elif type(dt) == datetime.date:
+        dt = datetime.date(year, month, dt.day)
+    else:
+        raise Exception('Incompatible type = ', type(dt), '. Only datetime.datetime and datetime.date are currently supported.')
     return dt
 
 
