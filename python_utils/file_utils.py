@@ -420,7 +420,7 @@ def wait_for_file_to_be_written_to(fpath, total_timeout=100000, time_frame=0.05)
         if time_utils.gtime() - start_time > total_timeout:
             raise Exception('file ' + fpath + ' still not done being written to after a total of ' + str(total_timeout) + ' seconds')
     time_utils.sleep(time_frame)
-    while fsize != os.path.getsize(fpath):
+    while fsize != os.path.getsize(fpath) and fsize != 0:
         fsize = os.path.getsize(fpath)
         time_utils.sleep(time_frame)
         if time_utils.gtime() - start_time > total_timeout:
