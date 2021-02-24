@@ -363,24 +363,37 @@ def write_to_file(fname, str_to_write, mode='w'):
         f.write(str_to_write)
 
 
-def lock_file(fname, message='locked', total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False):
-    wait_for_file_to_vanish(fname, total_timeout=total_timeout, time_frame=time_frame,  go_ahead_if_out_of_time=go_ahead_if_out_of_time)
-    with open(fname, 'w') as f:
-        f.write(message)
+def lock_file(fpath, message='locked', total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False):
+    start_time = time.time()
+    wait_for_file_to_vanish(fpath, total_timeout=total_timeout, time_frame=time_frame,  go_ahead_if_out_of_time=go_ahead_if_out_of_time)
+    read_lockfile_message = 'Nonelkjlkj'
+    while read_lockfile_message != lockfile_message:
+        with open(fpath, 'w') as f:
+            f.write(message)
+        time.sleep(0.05)
+        try:
+            with open(fpath) as f:
+                read_lockfile_message = f.read()
+        except:
+            pass
+        if time.time() - start_time > total_timeout and not go_ahead_if_out_of_time:
+            raise Exception('Took longer than total_timeout =', total_timeout, 'seconds to acquire lock file.')
+    
 
-
-def wait_for_file_to_vanish(fname, total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False):
-    start_time = time_utils.gtime()
+def wait_for_file_to_vanish(fpath, total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False):
+    start_time = time.time()
+    if time_frame == 0:
+        while os.path.exists(fpath):
+            if time.time() - start_time > total_timeout and not go_ahead_if_out_of_time:
+                raise Exception('file ' + fpath + ' still exists after a total of ' + str(total_timeout) + ' seconds') 
+        return   
     #wait until a file is removed by some other process
-    while os.path.exists(fname):
+    while os.path.exists(fpath):
         #sleep a random amount of time to help prevent clashing (if multiple ranks)
-        time_utils.sleep(random.uniform(time_frame, 24.0 * time_frame))
-        if time_utils.gtime() - start_time > total_timeout:
-            if go_ahead_if_out_of_time:
-                return
-            else:
-                raise Exception('file ' + fname + ' still locked after a total of ' + str(total_timeout) + ' seconds')
-
+        time_utils.sleep(random.uniform(time_frame, 1.1 * time_frame))
+        if time.time() - start_time > total_timeout and not go_ahead_if_out_of_time:
+            raise Exception('file ' + fpath + ' still exists after a total of ' + str(total_timeout) + ' seconds')
+        
 
 def wait_for_file_to_exist(fpath, total_timeout=100000, time_frame=0.05):
     '''
@@ -440,6 +453,44 @@ def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_fram
     '''
     wait_for_file_to_exist(fpath, total_timeout=total_timeout, time_frame=time_frame)
     wait_for_file_to_be_written_to(fpath, total_timeout=total_timeout, time_frame=time_frame)
+
+
+def get_new_task(lockfile_fpath, incomplete_tasks_fpath):
+    lockfile_message = str(int(time.time() * 10000))
+    read_lockfile_message = 'None'
+    lock_file(lockfile_fpath, message='locked', total_timeout=100, time_frame=0.05, go_ahead_if_out_of_time=False)
+    wait_for_file_to_be_written_to(incomplete_tasks_fpath, total_timeout=1000, time_frame=0.05)
+    tasks_df = pd.read_csv(incomplete_tasks_fpath)
+    if len(tasks_df.values[len(tasks_df) - 1]) > 0:
+        task_id = tasks_df.values[len(tasks_df) - 1][0]
+    else:
+        rm(lockfile_fpath)
+        return None
+    tasks_df.drop(index=len(tasks_df) - 1, inplace=True)
+    tasks_df.to_csv(incomplete_tasks_fpath, index=False)
+    num_incomplete_tasks = len(tasks_df)
+    del tasks_df
+    rm(lockfile_fpath)
+    return task_id
+
+
+def add_completed_task(lockfile_fpath, complete_tasks_fpath, task_id, intermediate_func=None, intermediate_args=[]):
+    # Use lockfile for complete tasks to let me know this task_id was complete.
+    lockfile_message = str(int(time.time() * 10000))
+    read_lockfile_message = 'None'
+    lock_file(lockfile_fpath, message='locked', total_timeout=100, time_frame=0.05, go_ahead_if_out_of_time=False)
+    if os.path.exists(complete_tasks_fpath):
+        wait_for_file_to_be_written_to(complete_tasks_fpath, total_timeout=1000, time_frame=0.05)
+        tasks_df = pd.read_csv(complete_tasks_fpath)
+        tasks_df = tasks_df.append(pd.DataFrame({'task_id':[task_id]}))
+    else:
+        tasks_df = pd.DataFrame({'task_id':[task_id]})
+    if intermediate_func is not None:
+        intermediate_func(*intermediate_args)
+    # Write to complete_tasks_fpath that this task is complete
+    tasks_df.to_csv(complete_tasks_fpath, index=False)
+    del tasks_df
+    rm(lockfile_fpath)
     
     
 def fname_from_fpath(fpath, include_ext=False):
