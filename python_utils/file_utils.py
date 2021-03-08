@@ -11,6 +11,7 @@ import shutil, fnmatch, random
 from python_utils import time_utils, err_utils, list_utils
 import platform
 import numpy as np
+import pandas as pd
 
 python_version = float(platform.python_version()[:3])
 if python_version >= 3.0:
@@ -363,35 +364,35 @@ def write_to_file(fname, str_to_write, mode='w'):
         f.write(str_to_write)
 
 
-def lock_file(fpath, message='locked', total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False):
-    start_time = time.time()
+def lock_file(fpath, lockfile_message='locked', total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False):
+    start_time = time_utils.gtime()
     wait_for_file_to_vanish(fpath, total_timeout=total_timeout, time_frame=time_frame,  go_ahead_if_out_of_time=go_ahead_if_out_of_time)
     read_lockfile_message = 'Nonelkjlkj'
     while read_lockfile_message != lockfile_message:
         with open(fpath, 'w') as f:
-            f.write(message)
-        time.sleep(0.05)
+            f.write(lockfile_message)
+        time_utils.sleep(0.05)
         try:
             with open(fpath) as f:
                 read_lockfile_message = f.read()
         except:
             pass
-        if time.time() - start_time > total_timeout and not go_ahead_if_out_of_time:
+        if time_utils.gtime() - start_time > total_timeout and not go_ahead_if_out_of_time:
             raise Exception('Took longer than total_timeout =', total_timeout, 'seconds to acquire lock file.')
     
 
 def wait_for_file_to_vanish(fpath, total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False):
-    start_time = time.time()
+    start_time = time_utils.gtime()
     if time_frame == 0:
         while os.path.exists(fpath):
-            if time.time() - start_time > total_timeout and not go_ahead_if_out_of_time:
+            if time_utils.gtime() - start_time > total_timeout and not go_ahead_if_out_of_time:
                 raise Exception('file ' + fpath + ' still exists after a total of ' + str(total_timeout) + ' seconds') 
         return   
     #wait until a file is removed by some other process
     while os.path.exists(fpath):
         #sleep a random amount of time to help prevent clashing (if multiple ranks)
         time_utils.sleep(random.uniform(time_frame, 1.1 * time_frame))
-        if time.time() - start_time > total_timeout and not go_ahead_if_out_of_time:
+        if time_utils.gtime() - start_time > total_timeout and not go_ahead_if_out_of_time:
             raise Exception('file ' + fpath + ' still exists after a total of ' + str(total_timeout) + ' seconds')
         
 
@@ -455,12 +456,39 @@ def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_fram
     wait_for_file_to_be_written_to(fpath, total_timeout=total_timeout, time_frame=time_frame)
 
 
+def rm_file_with_message(fpath, message):
+    while os.path.exists(fpath):
+        try:
+            with open(fpath) as f:
+                read_message = f.read()
+        except:
+            return
+        if read_message == message:
+            rm(fpath)
+        else:
+            return
+        time_utils.sleep(0.1)
+
+
+def read_fragile_csv(fpath):
+    wait_for_file_to_be_written_to(fpath, total_timeout=1000, time_frame=0.1)
+    read_success = False
+    start_time = time_utils.gtime()
+    while not read_success:
+        try:
+            df = pd.read_csv(fpath)
+            read_success = True
+        except:
+            time_utils.sleep(0.1)
+        if time_utils.gtime() - start_time > 1000:
+            raise Exception('Took more than 1000 seconds to try to read', tasks_fpath,'\nExpected the file to be existant and non-empty.')
+    return df
+
+
 def get_new_task(lockfile_fpath, incomplete_tasks_fpath):
-    lockfile_message = str(int(time.time() * 10000))
-    read_lockfile_message = 'None'
-    lock_file(lockfile_fpath, message='locked', total_timeout=100, time_frame=0.05, go_ahead_if_out_of_time=False)
-    wait_for_file_to_be_written_to(incomplete_tasks_fpath, total_timeout=1000, time_frame=0.05)
-    tasks_df = pd.read_csv(incomplete_tasks_fpath)
+    lockfile_message = str(int(time_utils.gtime() * 10000))
+    lock_file(lockfile_fpath, lockfile_message=lockfile_message, total_timeout=1000, time_frame=0.1, go_ahead_if_out_of_time=False)
+    tasks_df = read_fragile_csv(incomplete_tasks_fpath)
     if len(tasks_df.values[len(tasks_df) - 1]) > 0:
         task_id = tasks_df.values[len(tasks_df) - 1][0]
     else:
@@ -470,18 +498,16 @@ def get_new_task(lockfile_fpath, incomplete_tasks_fpath):
     tasks_df.to_csv(incomplete_tasks_fpath, index=False)
     num_incomplete_tasks = len(tasks_df)
     del tasks_df
-    rm(lockfile_fpath)
+    rm_file_with_message(lockfile_fpath, lockfile_message)
     return task_id
 
 
 def add_completed_task(lockfile_fpath, complete_tasks_fpath, task_id, intermediate_func=None, intermediate_args=[]):
     # Use lockfile for complete tasks to let me know this task_id was complete.
-    lockfile_message = str(int(time.time() * 10000))
-    read_lockfile_message = 'None'
-    lock_file(lockfile_fpath, message='locked', total_timeout=100, time_frame=0.05, go_ahead_if_out_of_time=False)
+    lockfile_message = str(int(time_utils.gtime() * 10000))
+    lock_file(lockfile_fpath, lockfile_message=lockfile_message, total_timeout=1000, time_frame=0.1, go_ahead_if_out_of_time=False)
     if os.path.exists(complete_tasks_fpath):
-        wait_for_file_to_be_written_to(complete_tasks_fpath, total_timeout=1000, time_frame=0.05)
-        tasks_df = pd.read_csv(complete_tasks_fpath)
+        tasks_df = read_fragile_csv(complete_tasks_fpath)
         tasks_df = tasks_df.append(pd.DataFrame({'task_id':[task_id]}))
     else:
         tasks_df = pd.DataFrame({'task_id':[task_id]})
@@ -490,7 +516,7 @@ def add_completed_task(lockfile_fpath, complete_tasks_fpath, task_id, intermedia
     # Write to complete_tasks_fpath that this task is complete
     tasks_df.to_csv(complete_tasks_fpath, index=False)
     del tasks_df
-    rm(lockfile_fpath)
+    rm_file_with_message(lockfile_fpath, lockfile_message)
     
     
 def fname_from_fpath(fpath, include_ext=False):

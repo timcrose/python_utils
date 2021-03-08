@@ -137,26 +137,121 @@ def get_date_str_from_today(delimiter='_'):
 
 
 def timedelta(dt, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0, months=0, years=0):
+    '''
+    dt: datetime.date or datetime.datetime
+        Date object that you want to modify.
+
+    days: number
+        The number of days to be added by datetime.timedelta after months and years have been modified.
+
+    seconds: number
+        The number of seconds to be added by datetime.timedelta after months and years have been modified.
+
+    microseconds: number
+        The number of microseconds to be added by datetime.timedelta after months and years have been modified.
+
+    milliseconds: number
+        The number of milliseconds to be added by datetime.timedelta after months and years have been modified.
+
+    minutes: number
+        The number of minutes to be added by datetime.timedelta after months and years have been modified.
+
+    hours: number
+        The number of hours to be added by datetime.timedelta after months and years have been modified.
+
+    weeks: number
+        The number of weeks to be added by datetime.timedelta after months and years have been modified.
+
+    months: int
+        The number of months to be added to the input dt.month (and taking into account the possibility of
+        entering a different year).
+
+    years: int
+        The number of years added to dt.year is years plus any additional years gained or lost by the months modifier.
+
+    Returns
+    -------
+    dt: datetime.date or datetime.datetime
+        The returned date object will be the same type as the input dt. The returned date object now has all the
+        modifications to the date and/or time that were requested.
+
+    Purpose
+    -------
+    datetime.timedelta does not come with a built-in way to add/substract months or years. This is probably because
+    of the ambiguity that arises. This function uses the methods described below to eliminate the ambiguity. This
+    function returns the date object that has now been modified by all the date and/or time modifications that
+    were requested (according to the method below).
+
+
+    Methods
+    -------
+    1. months is the number of months we want to add to the current date assuming the input years is 0. Adding this
+        number of months to the input date could cause a change in the output year.
+
+        e.g. months=3 and dt.month = 11 would cause the month to be 2 (Feb) of the next year.
+
+    2. In order to know how many years should be added due to the months input alone, get the number of months
+        from Jan of the input dt.year. Then, divide this by 12 and subtract the remainder to get the number of years.
+
+        e.g. # 1. months=3, dt.month=11, dt.year=2020 would mean we need to add 3 + 11 - 1 = 13 months to Jan 2020
+        to reach Feb 2021. The "-1" is because Jan = 1. So months is now set to 13.
+
+        13 / 12 = 1 + (1 / 12), so the reminader is (1 / 12). Thus the number of years to add due to the months input
+        alone is (13 / 12) - (1 / 12) = 1. This could be re-expressed as (13 - 1) / 12 or (13 - (13 % 12)) / 12.
+
+        e.g. # 2. months=15, dt.month=11, dt.year=2020 would mean we need to add 15 + 11 - 1 = 25 months to Jan 2020
+        to reach Feb 2022.
+
+        (25 - (25 % 12)) / 12 = (25 - 1) / 12 = 2 years will be added to dt.year due to the months input alone.
+
+    3. Increment the input years by the number of years that months werer already calculated.
+
+        e.g. # 1. if years=2 then do years += 1 to get years = 3
+
+    4. Add years to dt.year to get the year value (before adding any weeks, days, hours, minutes, etc)
+
+        e.g. # 1. 2020 + 3 = 2023
+
+    5. The month value becomes the remainder (months % 12) + 1 where the 1 is becuase Jan=1.
+
+        e.g. # 1. (13 % 12) + 1 = 2 (which is Feb)
+
+    6. Now add the datetime.timedelta values to get the final date.
+
+    Notes
+    -----
+    1. months and years modify dt first and then the rest (days, seconds, etc) are applied.
+    2. Numbers can be negative.
+    3. months start with 1 being January and end with 12 being December.
+    4. If datetime.date is the input, then items like minutes and seconds will still be used (from 00:00:00), and then
+        the resulting year, month, and day will be used to return the final datetime.date object.
+    '''
     if months != int(months):
         raise ValueError('months must be a whole number. Got months = ', months)
     if years != int(years):
         raise ValueError('years must be a whole number. Got years = ', years)
     years = int(years)
     months = int(months)
-    dt += datetime.timedelta(days=days, seconds=seconds, microseconds=microseconds, milliseconds=milliseconds, minutes=minutes, hours=hours, weeks=weeks)
-    months = months + dt.month
-    num_years_to_add = ((months - 1) - ((months - 1) % 12)) / 12
+    # Increment months by dt.month and then subtract 1 because we are using January = 1
+    # and months is the number of months to add. Thus, after this next line, months becomes
+    # the number of months to add if you were to start from January of dt.year.
+    months = months + dt.month - 1
+    # num_years_to_add is a modifier to years such that when added to years, years becomes the
+    # value to add to dt.year to get the dt.year used for subsequent application of datetime.timedelta to get the final result.
+    # Given that months is required to be an integer, num_years_to_add will always be an integer value.
+    num_years_to_add = (months - (months % 12)) / 12
     years += num_years_to_add
     year = int(dt.year + years)
-    month = int(((months - 1) % 12) + 1)
+    # month will be the dt.month used for subsequent application of datetime.timedelta to get the final result.
+    # month at this point is simply the number of months to add starting from January and then + 1 because January = 1.
+    month = int((months % 12) + 1)
     if type(dt) == datetime.datetime:
         dt = datetime.datetime(year, month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond)
+        dt += datetime.timedelta(days=days, seconds=seconds, microseconds=microseconds, milliseconds=milliseconds, minutes=minutes, hours=hours, weeks=weeks)
     elif type(dt) == datetime.date:
-        dt = datetime.date(year, month, dt.day)
+        dt = datetime.datetime(year, month, dt.day)
+        dt += datetime.timedelta(days=days, seconds=seconds, microseconds=microseconds, milliseconds=milliseconds, minutes=minutes, hours=hours, weeks=weeks)
+        dt = datetime.date(dt.year, dt.month, dt.day)
     else:
         raise Exception('Incompatible type = ', type(dt), '. Only datetime.datetime and datetime.date are currently supported.')
     return dt
-
-
-
-
