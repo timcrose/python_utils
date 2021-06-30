@@ -38,7 +38,7 @@ def convert_mem_to_int(windows_tasks_df):
             integer_mem = 0
         else:
             integer_mem = int(removed_commas) # -> 218036
-    mem_usage_numeric.append(integer_mem)
+        mem_usage_numeric.append(integer_mem)
     
     windows_tasks_df.loc[:, 'mem_usage_numeric'] = mem_usage_numeric
     
