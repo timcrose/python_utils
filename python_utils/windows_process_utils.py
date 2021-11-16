@@ -7,6 +7,7 @@ Created on Tue May 25 19:03:32 2021
 import os
 import time
 import pandas as pd
+import pywinauto as pwa
 
 
 def convert_mem_to_int(windows_tasks_df):
@@ -693,6 +694,57 @@ def monitor_windows_task(process_id=None, task_row=None, max_mem=None,
                 return 'Not Responding'
         # Delay between checks
         time.sleep(sleep_delay)
+        
+        
+def get_windows(image_name, win_title, process_df=None):
+    '''
+    image_name: str
+        Name of process as found by the "Details" section of Windows Task Manager.
+    
+    win_title:
+        The title of the window(s) to get.
+        
+    process_df: pd.DataFrame or None
+        Dataframe only containing rows of  instances. The important column
+        is 'process_id' which contains the Windows PID of the particular 
+        instance. This df is gotten by windows_process_utils.get_passing_df
+        so see that function for more info.
+        
+        If None, then process_df is gotten automatically for you.
+        
+    Returns
+    -------
+    windows: list of pywinauto.application.WindowSpecification
+        Each element is a window object for a particular instance (window)
+        that has title win_title.
+        
+    Purpose
+    -------
+    Get the window object for each program running which has title win_title 
+    which can be used to manipulate and give focus to the window.
+    
+    Notes
+    -----
+    1. Windowed instances with win_title should already be running.
+    '''
+    if process_df is None:
+        vars_df = get_vars_df(image_name=image_name)
+        process_df = get_passing_df(vars_df)
+    windows = []
+    for i, process_id in enumerate(process_df['process_id']):
+        # Initialize an Application object to be connected to the process_id
+        # of this  instance.
+        app = pwa.application.Application().connect(process=int(process_id))
+        # Find the handle of the window for this  instance.
+        handle = pwa.findwindows.find_windows(
+                title=win_title, 
+                process=int(process_id))[0]
+        
+        # Finally, we have the window object.
+        window = app.window(handle=handle)
+        windows.append([window, window.rectangle().left])
+    windows = [window for window, left in windows]
+    return windows
        
         
 def main():
