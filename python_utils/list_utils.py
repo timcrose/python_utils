@@ -518,3 +518,24 @@ def arrs_to_matrix(*arrs):
     You can also pass in a variety of different things.
     '''
     return np.array(tuple(zip(*arrs)))
+
+
+def where_mat(condition):
+    '''
+    Parameters
+    ----------
+    condition: bool
+        expression that is passed into np.where(condition)
+
+    Returns
+    -------
+    Rectangular matrix output format of the results of np.where
+    
+    Purpose
+    -------
+    Often when you run np.where(), you're hoping for a matrix where the first
+    column is the found row indices and the second column is the corresponding
+    found col indices. This allows iterating over the [row, col] pairs instead
+    of just the index.
+    '''
+    return arrs_to_matrix(*np.where(condition))
