@@ -450,3 +450,71 @@ def equal_frequency_bins(arr, nbin):
     nlen = len(arr)
     equal_frequency_bin_edges = np.interp(np.linspace(0, nlen, nbin + 1), np.arange(nlen), np.sort(arr))
     return equal_frequency_bin_edges
+
+
+def arrs_to_matrix(*arrs):
+    '''
+    Parameters
+    ----------
+    *arrs: iterables
+        Any number of iterables of the same shape (usually)
+
+    Returns
+    -------
+    matrix: np.array, shape: see zip documentation and below examples
+    
+    e.g.
+    a = np.array([1,2,3])
+    b = np.array([4,5,6])
+    c = np.array([[7,8],[9,10],[11,12]])
+    d = np.array([[13,14],[15,16],[17,18]])
+    
+    arrs_to_matrix(*[a,b]) -> array(
+        [[1, 4],
+        [2, 5],
+        [3, 6]])
+    
+    arrs_to_matrix([a,b]) -> array(
+        [[[1, 2, 3]],
+         
+         [[4, 5, 6]]])
+    
+    arrs_to_matrix(*c,a) -> array(
+        [[ 7,  9, 11,  1],
+         [ 8, 10, 12,  2]])
+    
+    arrs_to_matrix(a,*c) -> array(
+        [[ 1,  7,  9, 11],
+         [ 2,  8, 10, 12]]
+        
+    arrs_to_matrix(c,d) -> array(
+        [[[ 7,  8],
+         [13, 14]],
+
+        [[ 9, 10],
+         [15, 16]],
+
+        [[11, 12],
+         [17, 18]]])
+    
+    arrs_to_matrix([c,d]) -> array(
+        [[[[ 7,  8],
+          [ 9, 10],
+          [11, 12]]],
+    
+    
+        [[[13, 14],
+          [15, 16],
+          [17, 18]]]])
+    
+    arrs_to_matrix(*c,*d) -> array(
+        [[ 7,  9, 11, 13, 15, 17],
+         [ 8, 10, 12, 14, 16, 18]])
+    
+    Purpose
+    -------
+    Pass in a list of 1D arrays (with * in front) and get out a matrix where 
+    the first column is the first arr, the second column is the second arr, etc.
+    You can also pass in a variety of different things.
+    '''
+    return np.array(tuple(zip(*arrs)))
