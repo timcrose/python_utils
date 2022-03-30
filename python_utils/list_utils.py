@@ -2,6 +2,8 @@ import re, random, functools, operator
 #import itertools
 from python_utils import math_utils, err_utils
 import numpy as np
+from copy import deepcopy
+
 
 def sorted_nicely(l):
     """ Sorts the given iterable in the way that is expected.
@@ -280,6 +282,100 @@ def sort_by_col(data, col, reverse=False):
     else:
         sorted_data = data[np.argsort(data[:,col])]
     return sorted_data
+
+
+def get_onehot_contiguous_idxs(onehot_arr, contiguous_len_range=[5,5]):
+    '''
+    Parameters
+    ----------
+    onehot_arr: 1D iterable of int
+        1D array or list of only 1s and 0s.
+        
+    contiguous_len_range: iterable of int of length 2
+        Only keep start,end ranges that are at least contiguous_len_range[0]
+        long and are at most contiguous_len_range[1] long. (Inclusive)
+
+    Returns
+    -------
+    contiguous_idxs: np.array shape (*,2)
+        a 2D np array where each row is [start index, end index] of a contiguous streak
+        in the onehot array where end - start is in the contiguous_len_range.
+
+    Purpose
+    -------
+    Given a onehot 1D list or array, (only comprising 0s and 1s), return a 2D
+    np array where each row is [start index, end index] of a contiguous streak
+    in the onehot array. Only return rows where the end index - start index is
+    at least contiguous_len_range[0] and at most contiguous_len_range[1].
+    
+    Notes
+    -----
+    1. end indices returned are actually 1 + the last index a 1 was found (because
+        they are ranges)
+    
+    Examples
+    --------
+    onehot_arr = [1,0,0,0,1,1,1,0,0,0,0,1,1,1,1,0,1,0,1,0,1,1,1]
+    contiguous_len_range = [2,10]
+    return 
+    [[ 4  7]
+     [11 15]
+     [20 23]]
+    '''
+    onehot_arr = np.append(onehot_arr, [0])
+    shifted_arr = np.append([0], onehot_arr[:-1])
+    diff_arr = onehot_arr - shifted_arr
+    # 1s mark where a contiguous section starts and -1 marks one position after the end of a contiguous section
+    ones = np.where(diff_arr == 1)[0]
+    minus_ones = np.where(diff_arr == -1)[0]
+    ranges = np.array(tuple(zip(ones, minus_ones)))
+    range_diffs = ranges[:,1] - ranges[:,0]
+    return ranges[(range_diffs >= contiguous_len_range[0]) & (range_diffs <= contiguous_len_range[1])]
+    
+
+def get_contiguous_values(arr, contiguous_len=5):
+    '''
+    Parameters
+    ----------
+    arr: iterable, 1D
+        1D iterable which has numbers that might be contiguous.
+                                                              
+    contiguous_len: int
+        Each contiguous section is only included in the returned contiguous_values
+        if the 'end' - 'start' value is >= contiguous_len
+
+    Returns
+    -------
+    contiguous_values: list of dict
+        Records the start value and end value of each contiguous section that is
+        >= contiguous_len in length.
+        
+    Examples
+    --------
+    arr = [1,4,5,6,9,10,10,11,23,24,25] has contiguous sequences 4,5,6 and 23,24,25, 
+    if contiguous_len is 3, so then we want to return 
+    contiguous_values = [{'start': 4, 'end':6}, {'start': 23, 'end': 25}]
+
+    Purpose
+    -------
+    Find a list of start,end pairs for contiguous sections >= contiguous_len in 1D array.
+    '''
+    contiguous_values = []
+    # Find contiguous sections greater than contiguous_len in a row
+    prev_elem = arr[0]
+    current_streak = {'start': arr[0],'end': arr[0] + 1}
+    for elem in arr:
+        if elem == prev_elem + 1:
+            current_streak['end'] = elem
+        else:
+            if current_streak['end'] - current_streak['start'] >= contiguous_len:
+                contiguous_values.append(current_streak)
+            current_streak = {'start': elem, 'end': elem + 1}
+        prev_elem = deepcopy(elem)
+    if current_streak['end'] - current_streak['start'] >= contiguous_len - 1:
+        contiguous_values.append(current_streak)
+    return contiguous_values
+        
 
 def is_contiguous(indices, mat_shape):
     '''
