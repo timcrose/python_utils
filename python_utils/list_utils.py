@@ -329,6 +329,8 @@ def get_onehot_contiguous_idxs(onehot_arr, contiguous_len_range=[5,5]):
     ones = np.where(diff_arr == 1)[0]
     minus_ones = np.where(diff_arr == -1)[0]
     ranges = np.array(tuple(zip(ones, minus_ones)))
+    if len(ranges) == 0:
+        return []
     range_diffs = ranges[:,1] - ranges[:,0]
     return ranges[(range_diffs >= contiguous_len_range[0]) & (range_diffs <= contiguous_len_range[1])]
     

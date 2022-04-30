@@ -114,25 +114,34 @@ def get_lines_of_file(fname, mode='r'):
     return lines
 
 
-def grep_single_file(search_str, fpath, read_mode, verbose=False):
-    try:
-        lines = get_lines_of_file(fpath, mode=read_mode)
-    except UnicodeDecodeError:
-        if verbose:
-            print('Warning, UnicodeDecodeError encountered by grep_single_file for fpath', fpath)
-        lines = []
-    found_result = [line for line in lines if search_str in line]
-    found_result_line_nums = [i for i,line in enumerate(lines) if search_str in line]
+def grep_single_file(search_str, fpath, read_mode, verbose=False, case_sensitive=True):
+    if case_sensitive:
+        search_str = search_str.lower()
+        file_str = read_file(fpath, mode=read_mode).lower()
+        lines = file_str.split('\n')
+        lst = [[i,line + '\n'] for i,line in enumerate(lines) if search_str in line]
+    else:
+        try:
+            lines = get_lines_of_file(fpath, mode=read_mode)
+        except UnicodeDecodeError:
+            if verbose:
+                print('Warning, UnicodeDecodeError encountered by grep_single_file for fpath', fpath)
+            lines = []
+        lst = [[i,line] for i,line in enumerate(lines) if search_str in line]
+    if len(lst) > 0:
+        found_result_line_nums, found_result = list(zip(*lst))
+    else:
+        found_result_line_nums, found_result = [], []
     found_result_fpaths = [fpath] * len(found_result)
     return found_result, found_result_line_nums, found_result_fpaths
             
 
-def grep_str(search_str, path, read_mode, fail_if_DNE=False, verbose=False):
+def grep_str(search_str, path, read_mode, fail_if_DNE=False, verbose=False, case_sensitive=True):
     if type(path) is str:
         if os.path.isdir(path):
-            return grep_dir_recursively(search_str, path, read_mode)
+            return grep_dir_recursively(search_str, path, read_mode, case_sensitive)
         elif os.path.isfile(path):
-            return grep_single_file(search_str, path, read_mode, verbose)
+            return grep_single_file(search_str, path, read_mode, verbose, case_sensitive=case_sensitive)
         
     if not fail_if_DNE:
         if verbose:
@@ -142,7 +151,7 @@ def grep_str(search_str, path, read_mode, fail_if_DNE=False, verbose=False):
         raise FileNotFoundError('path DNE: ', path)
 
 
-def grep(search_str, paths, read_mode='r', fail_if_DNE=False, verbose=False, return_line_nums=False, return_fpaths=False):
+def grep(search_str, paths, read_mode='r', fail_if_DNE=False, verbose=False, return_line_nums=False, return_fpaths=False, case_sensitive=True):
     found_lines = []
     found_line_nums = []
     found_fpaths = []
@@ -151,7 +160,7 @@ def grep(search_str, paths, read_mode='r', fail_if_DNE=False, verbose=False, ret
 
     if hasattr(paths, '__iter__'):
         for path in paths:
-            found_result, found_result_line_nums, found_result_fpaths = grep_str(search_str, path, read_mode, fail_if_DNE=fail_if_DNE, verbose=verbose)
+            found_result, found_result_line_nums, found_result_fpaths = grep_str(search_str, path, read_mode, fail_if_DNE=fail_if_DNE, verbose=verbose, case_sensitive=case_sensitive)
             found_lines += found_result
             found_line_nums += found_result_line_nums
             found_fpaths += found_result_fpaths

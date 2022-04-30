@@ -246,14 +246,14 @@ def find(start_paths, name_search_str=None, recursive=True, \
     return path_lsts
 
 
-def grep_dir_recursively(search_str, dir_path, read_mode):
+def grep_dir_recursively(search_str, dir_path, read_mode, case_sensitive):
     from python_utils.file_utils import grep_single_file
     found_lines = []
     found_line_nums = []
     found_fpaths = []
     for sub_path in find(dir_path, recursive=True):
         if not os.path.isdir(sub_path):
-            found_result, found_result_line_nums, found_result_fpaths = grep_single_file(search_str, sub_path, read_mode)
+            found_result, found_result_line_nums, found_result_fpaths = grep_single_file(search_str, sub_path, read_mode, case_sensitive)
             found_lines += found_result
             found_line_nums += found_result_line_nums
             found_fpaths += found_result_fpaths

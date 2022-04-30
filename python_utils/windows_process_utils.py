@@ -8,6 +8,7 @@ import os
 import time
 import pandas as pd
 import pywinauto as pwa
+from pprint import pprint
 
 
 def convert_mem_to_int(windows_tasks_df):
@@ -736,13 +737,17 @@ def get_windows(image_name, win_title, process_df=None):
         # of this  instance.
         app = pwa.application.Application().connect(process=int(process_id))
         # Find the handle of the window for this  instance.
-        handle = pwa.findwindows.find_windows(
+        handles = pwa.findwindows.find_windows(
                 title=win_title, 
-                process=int(process_id))[0]
+                process=int(process_id))
         
-        # Finally, we have the window object.
-        window = app.window(handle=handle)
-        windows.append([window, window.rectangle().left])
+        if len(handles) > 0:
+            handle = handles[0]
+            # Finally, we have the window object.
+            window = app.window(handle=handle)
+            windows.append([window, window.rectangle().left])
+            break
+        
     windows = [window for window, left in windows]
     return windows
        
