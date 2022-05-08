@@ -29,3 +29,7 @@ def insert_df_into_df(inserted_df, df):
     df = df.append(inserted_df, ignore_index=False)
     df = df.sort_index().reset_index(drop=True)
     return df
+
+
+def get_value_from_row(df, col_name, row_value, value_col_name):
+    return df[df[col_name] == row_value][value_col_name].values[0]

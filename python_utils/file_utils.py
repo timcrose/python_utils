@@ -546,7 +546,7 @@ def fname_from_fpath(fpath, include_ext=False):
     return os.path.splitext(basename)[0]
 
 
-def replace_line_in_file(search_str, replacement_line, fpath, num_of_occurrences=-1, search_from_top_to_bottom=True):
+def replace_line_in_file(search_str, replacement_line, fpath, num_of_occurrences=-1, search_from_top_to_bottom=True, percent_range=None, line_range=None):
     '''
     search_str: str
         This string is searched for in the file as a substring of a line in that file.
@@ -562,6 +562,17 @@ def replace_line_in_file(search_str, replacement_line, fpath, num_of_occurrences
     search_from_top_to_bottom: bool
         True: Iterate through the lines sequentially
         False: Iterate through the lines in reverse order
+    percent_range: list of int or None
+        [lower line percent, upper line percent]
+        e.g. if percent_range is [0.3,0.5], then only look at lines that are between
+        30% and 50% of the file's lines. So, if the file has 100 lines, then only consider
+        lines 30 through 50, inclusive.
+        
+        If None, then use either all_lines or use line_range if not None.
+    line_range: list of int or None
+        [lower line number, upper line number]
+        Only search between these line numbers in the file. If None, use percent_range if not None, else use all_lines.
+        First line is 0.
 
     Return: None
 
@@ -570,7 +581,14 @@ def replace_line_in_file(search_str, replacement_line, fpath, num_of_occurrences
 
     Notes: Put a newline character at the end of your replacement_line string if you wish one to be there.
     '''
-    lines = get_lines_of_file(fpath)
+    all_lines = get_lines_of_file(fpath)
+    lines = None
+    if percent_range is not None:
+        lines = all_lines[int(percent_range[0] * len(all_lines)) : int(percent_range[1] * len(all_lines))]
+    if line_range is not None:
+        lines = all_lines[line_range[0]: line_range[1]]
+    if lines is None:
+        lines = all_lines
     if not search_from_top_to_bottom:
         lines.reverse()
     num_occurrences = 0
@@ -580,6 +598,20 @@ def replace_line_in_file(search_str, replacement_line, fpath, num_of_occurrences
         if search_str in line:
             lines[i] = replacement_line
             num_occurrences += 1
+    if not search_from_top_to_bottom:
+        lines.reverse()
+    if line_range is not None:
+        all_lines = np.array(all_lines)
+        lines = np.array(lines)
+        all_lines[int(percent_range[0] * len(all_lines)) : int(percent_range[1] * len(all_lines))] = lines
+        write_lines_to_file(fpath, all_lines, mode='w')
+        return
+    if percent_range is not None:
+        all_lines = np.array(all_lines)
+        lines = np.array(lines)
+        all_lines[int(percent_range[0] * len(all_lines)) : int(percent_range[1] * len(all_lines))] = lines
+        write_lines_to_file(fpath, all_lines, mode='w')
+        return
     write_lines_to_file(fpath, lines, mode='w')
 
 
