@@ -76,7 +76,7 @@ def barrier(comm, tag=0, sleep=0.01):
         src = (rank - mask + size) % size
         req = comm.isend(None, dst, tag)
         while not comm.Iprobe(src, tag):
-            time.sleep(sleep)
+            time_utils.sleep(sleep)
         comm.recv(None, src, tag)
         req.Wait()
         mask <<= 1
@@ -95,7 +95,7 @@ def barrier(comm, tag=0, sleep=0.01):
     '''
 
 
-def split_up_list_evenly(lst, rank, size):
+def split_up_list_evenly(lst, rank, size, include_master=True):
     '''
     lst: list or np.array
         Overall list of elements to split up amongst ranks
@@ -103,6 +103,9 @@ def split_up_list_evenly(lst, rank, size):
         MPI rank for communicator of size size
     size:
         Number of total ranks in a communicator (size)
+    include_master: bool
+        True: Split up data among all ranks
+        False: Split up data among size - 1 ranks and give rank 0 None
 
     Return:
     lst: list or np.array
@@ -113,6 +116,11 @@ def split_up_list_evenly(lst, rank, size):
         array as evenly as possible. e.g. if size = 3, and lst = [0,1,2,3,4], then
         rank 0 gets [0,1], rank 1 gets [2,3], and rank 2 gets [4].
     '''
+    if not include_master:
+        if rank == 0:
+            return None
+        rank -= 1
+        size -= 1
     num_tasks = len(lst)
     tasks_per_rank = int(num_tasks / size)
     num_remainder_tasks = num_tasks - tasks_per_rank * size

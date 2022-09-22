@@ -192,9 +192,14 @@ def write_lines_to_file(fpath, lines, mode='w'):
         f.writelines(lines)
 
 
-def mkdir_if_DNE(path):
+def mkdir_if_DNE(path, fail_gracefully=True):
     if not os.path.isdir(path):
-        os.makedirs(path)
+        try:
+            os.makedirs(path)
+        except Exception as e:
+            if fail_gracefully:
+                return
+            raise e
 
 
 def cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=False, verbose=True, overwrite=True):
