@@ -9,6 +9,31 @@ import math, random
 import numpy as np
 from decimal import Decimal, ROUND_HALF_UP, ROUND_HALF_DOWN
 
+
+def find_intersection(plane_normal,plane_point,ray_direction,ray_point):
+    '''
+    This function finds the intersection of a line and a plane.
+    
+    Args:
+    plane_normal: A normal vector of the plane.
+    plane_point: A point on the plane.
+    ray_direction: A direction vector of the line.
+    ray_point: A point on the line.
+    
+    Returns:
+    Psi: The intersection point of the line and the plane, or None.
+    '''
+    epsilon=1e-6
+    ndotu = plane_normal.dot(ray_direction)
+    if abs(ndotu) < epsilon:
+        # no intersection or line is within plane
+        return None
+    w = ray_point - plane_point
+    si = -plane_normal.dot(w) / ndotu
+    Psi = w + si * ray_direction + plane_point #intersections
+    return Psi
+
+
 def round_nearest_multiple(number, a, direction='standard'):
     '''
     Rounds number to nearest multiple of a. The returned number will have the

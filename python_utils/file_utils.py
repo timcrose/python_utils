@@ -5,7 +5,7 @@ Created on Tue Feb  6 19:16:48 2018
 @author: timcrose
 """
 
-import csv, json, os, sys, pickle, h5py
+import csv, json, os, sys, pickle
 from glob import glob
 import shutil, fnmatch, random
 from python_utils import time_utils, err_utils, list_utils
@@ -181,10 +181,15 @@ def grep(search_str, paths, read_mode='r', fail_if_DNE=False, verbose=False, ret
         return found_lines
 
 
-def read_file(fpath, mode='r'):
-    with open(fpath, mode) as f:
-        file_contents = f.read()
-    return file_contents
+def read_file(fpath, mode='r', num_attempts=10):
+    for i in range(num_attempts):
+        try:
+            with open(fpath, mode) as f:
+                file_contents = f.read()
+            return file_contents
+        except Exception as e:
+            time.sleep(1)
+    raise e
 
 
 def write_lines_to_file(fpath, lines, mode='w'):
@@ -824,6 +829,7 @@ def write_h5_file(h5_fpath, data, attrs_dct={}, dset_name=None, overwrite=True, 
     Purpose: Write an h5 file using h5py to contain a dataset supplied by
         data and attributes supplied by attrs_dct.
     '''
+    import h5py
     if os.path.exists(h5_fpath):
         if not overwrite:
             if fail_if_already_exists:
@@ -866,6 +872,7 @@ def read_h5_file(h5_fpath, row_start_idx=0, row_end_idx=None, col_start_idx=0, c
     Purpose: Read dataset referred to by dset_name in h5_fpath and return the data inside and/or
         the attribute dictionary, if desired.
     '''
+    import h5py
     if dset_name is None:
         dset_name = fname_from_fpath(h5_fpath)
     with h5py.File(h5_fpath, 'r') as hf:

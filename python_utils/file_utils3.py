@@ -275,14 +275,10 @@ def write_row_to_csv(path, one_dimensional_list, mode='a', delimiter=','):
         csvWriter.writerow(one_dimensional_list)
         
 def write_rows_to_csv(path, two_Dimensional_list, mode='w', delimiter=','):
-
     if 'b' == mode[-1]:
         mode = mode[:-1]
     f = open(path, mode, newline='')
 
     csvWriter = csv.writer(f, delimiter=delimiter)
-    for row in two_Dimensional_list:
-        if type(row) is not list:
-            raise TypeError('row is not type list, cannot write to csv. The type of row is ' + str(type(row)), 'row', row)
-        csvWriter.writerow(row)
+    csvWriter.writerows(two_Dimensional_list)
     f.close()
