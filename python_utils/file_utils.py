@@ -5,7 +5,7 @@ Created on Tue Feb  6 19:16:48 2018
 @author: timcrose
 """
 
-import csv, json, os, sys, pickle
+import csv, json, os, sys, pickle, time
 from glob import glob
 import shutil, fnmatch, random
 from python_utils import time_utils, err_utils, list_utils
