@@ -255,3 +255,15 @@ def timedelta(dt, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, 
     else:
         raise Exception('Incompatible type = ', type(dt), '. Only datetime.datetime and datetime.date are currently supported.')
     return dt
+
+
+def get_utc_time():
+    return datetime.datetime.now(datetime.timezone.utc)
+
+
+def is_within_time_range(start_time, end_time, time_to_query=get_utc_time(), compare_hours_only=True):
+    if compare_hours_only:
+        start_time = start_time.replace(year=2000,month=1,day=1)
+        end_time = end_time.replace(year=2000,month=1,day=1)
+        time_to_query = time_to_query.replace(year=2000,month=1,day=1)
+    return time_to_query <= end_time and time_to_query >= start_time
