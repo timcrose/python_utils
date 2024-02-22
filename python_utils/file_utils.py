@@ -115,6 +115,7 @@ def get_lines_of_file(fname, mode='r'):
 
 
 def grep_single_file(search_str, fpath, read_mode, verbose=False, case_sensitive=True):
+    '''
     if case_sensitive:
         search_str = search_str.lower()
         file_str = read_file(fpath, mode=read_mode).lower()
@@ -128,6 +129,16 @@ def grep_single_file(search_str, fpath, read_mode, verbose=False, case_sensitive
                 print('Warning, UnicodeDecodeError encountered by grep_single_file for fpath', fpath)
             lines = []
         lst = [[i,line] for i,line in enumerate(lines) if search_str in line]
+    '''
+    file_str = read_file(fpath, mode=read_mode)
+    lines = file_str.split('\n')
+    if case_sensitive:
+        lst = [[i,line] for i,line in enumerate(lines) if search_str in line]
+    else:
+        file_str_lower = file_str.lower()
+        search_str_lower = search_str.lower()
+        lines_lower = file_str_lower.split('\n')
+        lst = [[i,lines[i] + '\n'] for i,line_lower in enumerate(lines_lower) if search_str_lower in line_lower]
     if len(lst) > 0:
         found_result_line_nums, found_result = list(zip(*lst))
     else:

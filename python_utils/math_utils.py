@@ -10,6 +10,104 @@ import numpy as np
 from decimal import Decimal, ROUND_HALF_UP, ROUND_HALF_DOWN
 
 
+def arccos2(vector, value):
+    if vector[0] == 0:
+        if vector[1] >= 0:
+            return 0
+        else:
+            return np.pi
+    return -np.sign(vector[0]) * np.arccos(value)
+
+
+def arctan_0(vector):
+    x = float(vector[0])
+    y = float(vector[1])
+    if x == 0:
+        return 0
+    if x >= 0:
+        return np.arctan(y / x) - (np.pi / 2.0)
+    else:
+        return np.arctan(y / x) + (np.pi / 2.0)
+
+
+def rotate_about_z_axis(vector, theta):
+    return np.dot(np.array([
+[np.cos(theta), -np.sin(theta), 0],
+[np.sin(theta), np.cos(theta), 0],
+[0, 0, 1]
+]), vector)
+
+
+def rotate_about_x_axis(vector, theta):
+    return np.dot(np.array([
+[1, 0, 0],
+[0, np.cos(theta), -np.sin(theta)],
+[0, np.sin(theta), np.cos(theta)]        
+]), vector)
+
+
+def rotate_point_about_axis_by_angle(point, axis, theta):
+    ux = axis[0]
+    uy = axis[1]
+    uz = axis[2]
+    uxx = ux**2
+    uyy = uy**2
+    uzz = uz**2
+    uxy = ux * uy
+    uxz = ux * uz
+    uyz = uy * uz
+    c = np.cos(theta)
+    s = np.sin(theta)
+    t = 1.0 - c
+    rotation_matrix = np.array([
+[t * uxx + c, t * uxy - s * uz, t * uxz + s * uy],
+[t * uxy + s * uz, t * uyy + c, t * uyz - s * ux],
+[t * uxz - s * uy, t * uyz + s * ux, t * uzz + c]
+])
+    return np.dot(rotation_matrix, point)
+
+
+def rotate_about_z_then_x(vector, gamma, phi):
+    gamma_rotated_vector = rotate_about_z_axis(vector, gamma)
+    rotated_x_axis = np.array([np.cos(gamma), np.sin(gamma), 0.0])
+    return rotate_point_about_axis_by_angle(gamma_rotated_vector, rotated_x_axis, phi)
+
+
+def calculate_continuous_differences_2d(angle_arr):
+    '''
+    Parameters
+    ----------
+    angle_arr: 2D np.array shape (n,2)
+        each column is a list of angles. Each row is a single observation
+
+    Returns
+    -------
+    dangle_arr: 2D np.array shape (n,2)
+        differences from one angle to the next and handles edge cases where
+        angles go over the 2 * pi boundary and appear like a large difference
+        but actually is a small difference.
+    '''
+    # Initialize an array to hold the differences
+    dangle_arr = np.zeros_like(angle_arr)
+
+    # Calculate the differences for each angle
+    for i in range(1, angle_arr.shape[0]):
+        for j in range(angle_arr.shape[1]):
+            # Calculate the raw difference
+            diff = angle_arr[i, j] - angle_arr[i - 1, j]
+
+            # Adjust the difference to be within -pi to pi radians
+            while diff > np.pi:
+                diff -= 2 * np.pi
+            while diff < -np.pi:
+                diff += 2 * np.pi
+
+            # Store the adjusted difference
+            dangle_arr[i, j] = diff
+
+    return dangle_arr
+
+
 def find_intersection(plane_normal,plane_point,ray_direction,ray_point):
     '''
     This function finds the intersection of a line and a plane.
