@@ -87,6 +87,8 @@ def calculate_continuous_differences_2d(angle_arr):
         angles go over the 2 * pi boundary and appear like a large difference
         but actually is a small difference.
     '''
+    if len(angle_arr) < 2:
+        return np.array([0,0])
     # Initialize an array to hold the differences
     dangle_arr = np.zeros_like(angle_arr)
 
@@ -105,7 +107,7 @@ def calculate_continuous_differences_2d(angle_arr):
             # Store the adjusted difference
             dangle_arr[i, j] = diff
 
-    return dangle_arr
+    return dangle_arr[1:]
 
 
 def find_intersection(plane_normal,plane_point,ray_direction,ray_point):
