@@ -230,8 +230,8 @@ def cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=False, verbose=Tr
                         rm(dest_path, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
                     else:
                         raise Exception('dest_dir', dest_dir, 'exists and overwrite == False so cannot copy', src_path)
-                    # shutil.copytree expects the final path be the second argument
-                    shutil.copytree(src_match_path, dest_path)
+                # shutil.copytree expects the final path be the second argument
+                shutil.copytree(src_match_path, dest_path)
             elif os.path.isfile(src_match_path):
                 if dest_fname == '':
                     dest_fname = os.path.basename(src_match_path)
