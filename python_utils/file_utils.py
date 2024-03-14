@@ -210,7 +210,7 @@ def open_file(fpath, mode='r', timeout=1.5, interval_delay=0.5):
     return f
 
 
-def read_file(fpath, mode='r', tiemout=10, interval_delay=1):
+def read_file(fpath, mode='r', timeout=10, interval_delay=1):
     f = open_file(fpath, mode=mode, timeout=timeout, interval_delay=interval_delay)
     file_contents = f.read()
     f.close()
