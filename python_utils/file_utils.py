@@ -108,9 +108,10 @@ def read_pickle(fpath, fail_gracefully=True, verbose=False):
         return None
 
 
-def get_lines_of_file(fname, mode='r'):
-    with open(fname, mode) as f:
-        lines = f.readlines()
+def get_lines_of_file(fname, mode='r', timeout=1.5, interval_delay=0.5):
+    f = open_file(fname, mode='r', timeout=timeout, interval_delay=interval_delay)
+    lines = f.readlines()
+    f.close()
     return lines
 
 
@@ -192,20 +193,29 @@ def grep(search_str, paths, read_mode='r', fail_if_DNE=False, verbose=False, ret
         return found_lines
 
 
-def read_file(fpath, mode='r', num_attempts=10):
-    for i in range(num_attempts):
+def open_file(fpath, mode='r', timeout=1.5, interval_delay=0.5):
+    start_time = time.perf_counter()
+    while time.perf_counter() - start_time < timeout:
         try:
-            with open(fpath, mode) as f:
-                file_contents = f.read()
-            return file_contents
+            f = open(path, mode)
+            return f
         except Exception as e:
-            time.sleep(1)
-    raise e
+            time.sleep(interval_delay)
+    else:
+        raise e
 
 
-def write_lines_to_file(fpath, lines, mode='w'):
-    with open(fpath, mode) as f:
-        f.writelines(lines)
+def read_file(fpath, mode='r', tiemout=10, interval_delay=1):
+    f = open_file(fpath, mode=mode, timeout=timeout, interval_delay=interval_delay)
+    file_contents = f.read()
+    f.close()
+    return file_contents
+
+
+def write_lines_to_file(fpath, lines, mode='w', timeout=1.5, interval_delay=0.5):
+    f = open_file(fpath, mode=mode, timeout=timeout, interval_delay=interval_delay)
+    f.writelines(lines)
+    f.close()
 
 
 def mkdir_if_DNE(path, fail_gracefully=True):
@@ -331,16 +341,15 @@ def rms(paths, fail_if_cant_rm=False, verbose=True):
         raise ValueError('paths must be a string of one path or an iterable of paths which are strings. paths:', paths)
 
 
-def read_csv(path,mode='r', map_type=None, dtype=None):
+def read_csv(path,mode='r', map_type=None, dtype=None, timeout=1.5, interval_delay=0.5):
     red_csv = []
 
     if not os.path.exists(path):
         return red_csv
-
-    with open(path, mode) as f:
-        csv_reader = csv.reader(f)
-        red_csv.extend(csv_reader)
-
+    f = open_file(path, mode=mode, timeout=timeout, interval_delay=interval_delay)
+    csv_reader = csv.reader(f)
+    red_csv.extend(csv_reader)
+    f.close()
     if map_type == 'float':
         red_csv = [list(map(float, row)) for row in red_csv]
     elif map_type == 'int':
@@ -352,34 +361,34 @@ def read_csv(path,mode='r', map_type=None, dtype=None):
     return red_csv
 
     
-def write_dct_to_json(path, dct, indent=4, dump_type='dump'):
+def write_dct_to_json(path, dct, indent=4, dump_type='dump', timeout=1.5, interval_delay=0.5):
     if path[-5:] != '.json':
         raise Exception('path must have .json extension. path:', path)
 
     if type(dct) != dict:
         raise TypeError('dct is not type dict, cannot write to json. type(dct):', type(dct))
 
-    with open(path, 'w') as f:
-        if dump_type == 'dump':
-            json.dump(dct, f, indent=indent)
-        elif dump_type == 'dumps':
-            json.dumps(dct, f, indent=indent)
+    f = open_file(path, mode='w', timeout=timeout, interval_delay=interval_delay)
+    if dump_type == 'dump':
+        json.dump(dct, f, indent=indent)
+    elif dump_type == 'dumps':
+        json.dumps(dct, f, indent=indent)
+    f.close()
+    
 
-
-def get_dct_from_json(path, load_type='load'):
+def get_dct_from_json(path, load_type='load', timeout=1.5, interval_delay=0.5):
     if path[-5:] != '.json':
         raise Exception('path must have .json extension. path:', path)
-
-    with open(path, 'r') as f:
-        if load_type == 'load':
-            dct = json.load(f)
-        elif load_type == 'loads':
-            dct = json.loads(dct, f)
-
+    f = open_file(path, mode='r', timeout=timeout, interval_delay=interval_delay)
+    if load_type == 'load':
+        dct = json.load(f)
+    elif load_type == 'loads':
+        dct = json.loads(dct, f)
+    f.close()
     return dct
 
 
-def write_to_file(fname, str_to_write, mode='w'):
+def write_to_file(fname, str_to_write, mode='w', timeout=1.5, interval_delay=0.5):
     '''
     fname: str
         path to file including file name
@@ -390,17 +399,19 @@ def write_to_file(fname, str_to_write, mode='w'):
     
     Purpose: write a string to a file.
     '''
-    with open(fname, mode=mode) as f:
-        f.write(str_to_write)
+    f = open_file(path, mode=mode, timeout=timeout, interval_delay=interval_delay)
+    f.write(str_to_write)
+    f.close()
 
 
-def lock_file(fpath, lockfile_message='locked', total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False):
+def lock_file(fpath, lockfile_message='locked', total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False, timeout=1.5, interval_delay=0.5):
     start_time = time_utils.gtime()
     wait_for_file_to_vanish(fpath, total_timeout=total_timeout, time_frame=time_frame,  go_ahead_if_out_of_time=go_ahead_if_out_of_time)
     read_lockfile_message = 'Nonelkjlkj'
     while read_lockfile_message != lockfile_message:
-        with open(fpath, 'w') as f:
-            f.write(lockfile_message)
+        f = open_file(path, mode='w', timeout=timeout, interval_delay=interval_delay)
+        f.write(lockfile_message)
+        f.close()
         time_utils.sleep(0.05)
         try:
             with open(fpath) as f:
