@@ -195,14 +195,19 @@ def grep(search_str, paths, read_mode='r', fail_if_DNE=False, verbose=False, ret
 
 def open_file(fpath, mode='r', timeout=1.5, interval_delay=0.5):
     start_time = time.perf_counter()
+    exception = None
     while time.perf_counter() - start_time < timeout:
         try:
-            f = open(path, mode)
-            return f
+            f = open(fpath, mode)
+            break
         except Exception as e:
+            exception = e
             time.sleep(interval_delay)
     else:
-        raise e
+        if exception is None:
+            raise TimeoutError('Could not open the file within timeout=', timeout, 'seconds')
+        raise exception
+    return f
 
 
 def read_file(fpath, mode='r', tiemout=10, interval_delay=1):
