@@ -583,7 +583,7 @@ def fname_from_fpath(fpath, include_ext=False):
     return os.path.splitext(basename)[0]
 
 
-def replace_text_in_file(fpath, search_str, replacement_str=None, replacement_line=None, num_of_occurrences=-1, search_from_top_to_bottom=True, percent_range=None, line_range=None):
+def replace_text_in_file(fpath, search_str, replacement_str=None, replacement_line=None, num_of_occurrences=-1, search_from_top_to_bottom=True, percent_range=None, line_range=None, overwrite=False):
     '''
     fpath: str
         file path to search and do the replacing on
@@ -613,6 +613,10 @@ def replace_text_in_file(fpath, search_str, replacement_str=None, replacement_li
         Only search between these line numbers in the file. If None, use percent_range if not None, else use all_lines.
         First line is 0.
         
+    overwrite: bool
+        True: The next len(replacement_str) characters after and including the location of search_str will be overwritten to be replacement_str (unless an end-line is found)
+        False: search_str is removed and replacement_str is inserted where search_str was found.
+        
     Return: None
 
     Purpose: Find a line in a specified file that contains a search string, then replace
@@ -627,7 +631,7 @@ def replace_text_in_file(fpath, search_str, replacement_str=None, replacement_li
         reverse_search_str = search_str[::-1]
         reverse_replacement_str = replacement_str[::-1]
     # If the whole file is to be considered and you want to just find & replace a string, then just do the following if block.
-    if (percent_range is None or percent_range == 1) and replacement_str is not None:
+    if (percent_range is None or percent_range == 1) and replacement_str is not None and not overwrite:
         with open(fpath, 'r') as file:
             data = file.read()
             if not search_from_top_to_bottom:
@@ -641,14 +645,14 @@ def replace_text_in_file(fpath, search_str, replacement_str=None, replacement_li
         return
     all_lines = get_lines_of_file(fpath)
     lines = None
+    if not search_from_top_to_bottom:
+        all_lines.reverse()
     if percent_range is not None:
         lines = all_lines[int(percent_range[0] * len(all_lines)) : int(percent_range[1] * len(all_lines))]
     if line_range is not None:
         lines = all_lines[line_range[0]: line_range[1]]
     if lines is None:
         lines = all_lines
-    if not search_from_top_to_bottom:
-        lines.reverse()
     num_occurrences = 0
     for i,line in enumerate(lines):
         if num_of_occurrences != -1 and num_occurrences >= num_of_occurrences:
@@ -656,13 +660,19 @@ def replace_text_in_file(fpath, search_str, replacement_str=None, replacement_li
         if search_str in line:
             if replacement_str is None:
                 lines[i] = replacement_line
-            else:
-                if not search_from_top_to_bottom:
-                    reverse_line = lines[i][::-1]
-                    reverse_line = reverse_line.replace(reverse_search_str, reverse_replacement_str, n_occurrences=(-1 if num_of_occurrences == -1 else max(num_of_occurrences - num_occurrences, 0)))
-                    lines[i] = reverse_line[::-1]
+            elif overwrite:
+                newline_i = lines[i].find('\n')
+                if newline_i == -1:
+                    last_i = len(lines[i]) - 1
                 else:
-                    lines[i] = lines[i].replace(search_str, replacement_str, n_occurrences=(-1 if num_of_occurrences == -1 else max(num_of_occurrences - num_occurrences, 0)))
+                    last_i = deepcopy(newline_i) - 1
+                search_str_i = lines[i].find(search_str)
+                num_chars_til_end = last_i - search_str_i + 1
+                new_replacement_str = replacement_str[:num_chars_til_end]
+                new_replacement_line = lines[i][:search_str_i] + new_replacement_str + lines[i][search_str_i + len(new_replacement_str):]
+                lines[i] = deepcopy(new_replacement_line)
+            else:
+                lines[i] = lines[i].replace(search_str, replacement_str, n_occurrences=(-1 if num_of_occurrences == -1 else max(num_of_occurrences - num_occurrences, 0)))
             num_occurrences += 1
     if not search_from_top_to_bottom:
         lines.reverse()

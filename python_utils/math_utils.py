@@ -10,6 +10,14 @@ import numpy as np
 from decimal import Decimal, ROUND_HALF_UP, ROUND_HALF_DOWN
 
 
+def remove_outliers(arr, num_std_devs=2):
+    if len(arr) < 2:
+        return arr
+    mean = np.mean(arr)
+    std_dev = np.std(arr)
+    return arr[np.abs(arr - mean) <= num_std_devs * std_dev]
+
+
 def arccos2(vector, value):
     if vector[0] == 0:
         if vector[1] >= 0:
