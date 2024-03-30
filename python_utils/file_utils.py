@@ -96,6 +96,7 @@ def read_pickle(fpath, fail_gracefully=True, verbose=False):
         return None
 
     # Load the pickled python object into python_obj
+    '''
     try:
         with open(fpath, 'rb') as f:
             python_obj = pickle.load(f)
@@ -106,7 +107,11 @@ def read_pickle(fpath, fail_gracefully=True, verbose=False):
             fail_gracefully, verbose=verbose)
 
         return None
-
+    
+    '''
+    with open(fpath, 'rb') as f:
+        python_obj = pickle.load(f)
+    return python_obj
 
 def get_lines_of_file(fname, mode='r', timeout=1.5, interval_delay=0.5):
     f = open_file(fname, mode='r', timeout=timeout, interval_delay=interval_delay)
