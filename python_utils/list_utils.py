@@ -6,7 +6,7 @@ from copy import deepcopy
 import itertools, collections
 
 
-def build_grid(grid_info, include_endpoint=False, allow_to_spill_over=False, return_np=False):
+def build_grid(grid_info, include_endpoint=False, allow_to_spill_over=False, return_np=False, dtype=int):
     '''
     grid_info: np.array shape (n_dim, 3)
         n_dims is the number of dimensions you want grid points for
@@ -20,6 +20,13 @@ def build_grid(grid_info, include_endpoint=False, allow_to_spill_over=False, ret
         True: If include_endpoint, include the first value >= upper_bound using step
         False: Do not include anything > upper_bound
         
+    return_np: bool
+        True: return np.array with dtype dtype
+        False: return collections.deque
+        
+    dtype: type
+        if return_np, this is the dtype of the np array
+        
     Returns
     -------
     grid: collections.deque or np.array shape (permutations, n_dims)
@@ -31,7 +38,7 @@ grid_info[i,2]).tolist() for i in range(grid_info.shape[0])]
     
     grid = collections.deque(itertools.product(*ranges))
     if return_np:
-        return np.array(grid)
+        return np.array(grid, dtype=dtype)
     return grid
         
 
