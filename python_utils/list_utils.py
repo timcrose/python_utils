@@ -3,6 +3,38 @@ import re, random, functools, operator
 from python_utils import math_utils, err_utils
 import numpy as np
 from copy import deepcopy
+import itertools, collections
+
+
+def build_grid(grid_info, include_endpoint=False, allow_to_spill_over=False, return_np=False):
+    '''
+    grid_info: np.array shape (n_dim, 3)
+        n_dims is the number of dimensions you want grid points for
+        Each row is [lower_bound, upper_bound, step]
+        
+    include_endpoint: bool
+        True: Include upper_bound if it is a multiple of step
+        False: Do not include anything >= upper_bound
+        
+    allow_to_spill_over: bool
+        True: If include_endpoint, include the first value >= upper_bound using step
+        False: Do not include anything > upper_bound
+        
+    Returns
+    -------
+    grid: collections.deque or np.array shape (permutations, n_dims)
+        Grid points equally spaced in each dimension by each dimension's step
+    '''
+    ranges = [np.arange(grid_info[i,0], 
+grid_info[i,1] + include_endpoint * (grid_info[i,2] * ((grid_info[i,1] + grid_info[i,2] <= grid_info[i,1]) or allow_to_spill_over)), 
+grid_info[i,2]).tolist() for i in range(grid_info.shape[0])]
+    
+    grid = collections.deque(itertools.product(*ranges))
+    if return_np:
+        return np.array(grid)
+    return grid
+        
+
 
 
 def sorted_nicely(l):
