@@ -73,24 +73,14 @@ def build_grid_traversal(grid_info, include_endpoint=False, allow_to_spill_over=
         collapsed_grid_info[i, 2] = i + 1
         collapsed_grid_info[i, 1] = len(set(grid[:,i])) * collapsed_grid_info[i, 2]
     collapsed_grid = build_grid(collapsed_grid_info, include_endpoint=True, allow_to_spill_over=False, return_np=True, dtype=int)
-    #print('collapsed_grid_info')
-    #print(collapsed_grid_info)
-    #print(len(collapsed_grid))
-    #print(collapsed_grid)
     if len(grid) != len(collapsed_grid):
         raise Exception('len(grid) != len(collapsed_grid)', 'len(grid)', len(grid), 'len(collapsed_grid)', len(collapsed_grid))
     # The kernel is a pairwise distance matrix
     kernel = distance.squareform(distance.pdist(collapsed_grid))
     del collapsed_grid
-    #print('kernel.shape', kernel.shape)
-    #print('kernel[0,0]', kernel[0,0])
-    #print('kernel[0,1]', kernel[0,1])
     # Fill the diagonal so that you will not choose yourself as the node with the minimum distance.
     kernel_max = kernel.max()
-    #print('kernel_max', kernel_max)
     np.fill_diagonal(kernel, kernel_max + 1)
-    #print('kernel[0,0]', kernel[0,0])
-    #print('kernel[0,1]', kernel[0,1])
     visited_idxs = [0]
     while len(visited_idxs) < len(grid):
         # make the col of the already visited node maxed out so it wont be picked again
