@@ -4,6 +4,7 @@ from python_utils import math_utils, err_utils
 import numpy as np
 from copy import deepcopy
 import itertools, collections
+from scipy.spatial import distance
 
 
 def build_grid(grid_info, include_endpoint=False, allow_to_spill_over=False, return_np=False, dtype=int):
@@ -40,9 +41,65 @@ grid_info[i,2]).tolist() for i in range(grid_info.shape[0])]
     if return_np:
         return np.array(grid, dtype=dtype)
     return grid
+
+
+def build_grid_traversal(grid_info, include_endpoint=False, allow_to_spill_over=False, dtype=int):
+    '''
+    grid_info: np.array shape (n_dim, 3)
+        n_dims is the number of dimensions you want grid points for
+        Each row is [lower_bound, upper_bound, step]
         
-
-
+    include_endpoint: bool
+        True: Include upper_bound if it is a multiple of step
+        False: Do not include anything >= upper_bound
+        
+    allow_to_spill_over: bool
+        True: If include_endpoint, include the first value >= upper_bound using step
+        False: Do not include anything > upper_bound
+        
+    dtype: type
+        this is the dtype of the returned np array
+        
+    Returns
+    -------
+    grid: np.array shape (permutations, n_dims)
+        Grid points equally spaced in each dimension by each dimension's step in
+        the order that will be minimal total distance traveled.
+    '''
+    grid = build_grid(grid_info, include_endpoint=include_endpoint, allow_to_spill_over=allow_to_spill_over, return_np=True, dtype=dtype)
+    # First, collapse grid such that each dimension's step is 1
+    collapsed_grid_info = np.zeros(grid_info.shape)
+    for i in range(grid.shape[1]):
+        collapsed_grid_info[i, 2] = i + 1
+        collapsed_grid_info[i, 1] = len(set(grid[:,i])) * collapsed_grid_info[i, 2]
+    collapsed_grid = build_grid(collapsed_grid_info, include_endpoint=True, allow_to_spill_over=False, return_np=True, dtype=int)
+    #print('collapsed_grid_info')
+    #print(collapsed_grid_info)
+    #print(len(collapsed_grid))
+    #print(collapsed_grid)
+    if len(grid) != len(collapsed_grid):
+        raise Exception('len(grid) != len(collapsed_grid)', 'len(grid)', len(grid), 'len(collapsed_grid)', len(collapsed_grid))
+    # The kernel is a pairwise distance matrix
+    kernel = distance.squareform(distance.pdist(collapsed_grid))
+    del collapsed_grid
+    #print('kernel.shape', kernel.shape)
+    #print('kernel[0,0]', kernel[0,0])
+    #print('kernel[0,1]', kernel[0,1])
+    # Fill the diagonal so that you will not choose yourself as the node with the minimum distance.
+    kernel_max = kernel.max()
+    #print('kernel_max', kernel_max)
+    np.fill_diagonal(kernel, kernel_max + 1)
+    #print('kernel[0,0]', kernel[0,0])
+    #print('kernel[0,1]', kernel[0,1])
+    visited_idxs = [0]
+    while len(visited_idxs) < len(grid):
+        # make the col of the already visited node maxed out so it wont be picked again
+        kernel[:,visited_idxs[-1]] = kernel_max + 1
+        # Use the row of the current node to see its distance to all other nodes and pick the minimal one
+        min_dist_idx = np.argmin(kernel[visited_idxs[-1]])
+        visited_idxs.append(min_dist_idx)
+    return grid[visited_idxs]
+    
 
 def sorted_nicely(l):
     """ Sorts the given iterable in the way that is expected.
