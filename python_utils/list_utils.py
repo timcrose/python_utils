@@ -34,7 +34,7 @@ def build_grid(grid_info, include_endpoint=False, allow_to_spill_over=False, ret
         Grid points equally spaced in each dimension by each dimension's step
     '''
     ranges = [np.arange(grid_info[i,0], 
-grid_info[i,1] + include_endpoint * (grid_info[i,2] * ((grid_info[i,1] + grid_info[i,2] <= grid_info[i,1]) or allow_to_spill_over)), 
+grid_info[i,1] + include_endpoint * (grid_info[i,2] * ((grid_info[i,1] % grid_info[i,2] == 0) or allow_to_spill_over)), 
 grid_info[i,2]).tolist() for i in range(grid_info.shape[0])]
     
     grid = collections.deque(itertools.product(*ranges))
@@ -72,7 +72,7 @@ def build_grid_traversal(grid_info, include_endpoint=False, allow_to_spill_over=
     for i in range(grid.shape[1]):
         collapsed_grid_info[i, 2] = i + 1
         collapsed_grid_info[i, 1] = len(set(grid[:,i])) * collapsed_grid_info[i, 2]
-    collapsed_grid = build_grid(collapsed_grid_info, include_endpoint=True, allow_to_spill_over=False, return_np=True, dtype=int)
+    collapsed_grid = build_grid(collapsed_grid_info, include_endpoint=False, allow_to_spill_over=False, return_np=True, dtype=int)
     if len(grid) != len(collapsed_grid):
         raise Exception('len(grid) != len(collapsed_grid)', 'len(grid)', len(grid), 'len(collapsed_grid)', len(collapsed_grid))
     # The kernel is a pairwise distance matrix
