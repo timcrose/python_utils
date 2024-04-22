@@ -266,4 +266,6 @@ def is_within_time_range(start_time, end_time, time_to_query=get_utc_time(), com
         start_time = start_time.replace(year=2000, month=1, day=1, tzinfo=tzinfo)
         end_time = end_time.replace(year=2000, month=1, day=1, tzinfo=tzinfo)
         time_to_query = time_to_query.replace(year=2000, month=1, day=1, tzinfo=tzinfo)
+        if end_time < start_time:
+            start_time = timedelta(start_time, days=-1)
     return time_to_query <= end_time and time_to_query >= start_time
