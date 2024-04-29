@@ -261,7 +261,9 @@ def get_utc_time():
     return datetime.datetime.now(datetime.timezone.utc)
 
 
-def is_within_time_range(start_time, end_time, time_to_query=get_utc_time(), compare_hours_only=True, tzinfo=datetime.timezone.utc):
+def is_within_time_range(start_time, end_time, time_to_query=None, compare_hours_only=True, tzinfo=datetime.timezone.utc):
+    if time_to_query is None:
+        time_to_query = get_utc_time()
     if compare_hours_only:
         start_time = start_time.replace(year=2000, month=1, day=1, tzinfo=tzinfo)
         end_time = end_time.replace(year=2000, month=1, day=1, tzinfo=tzinfo)
