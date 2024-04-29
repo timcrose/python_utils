@@ -168,7 +168,7 @@ def timedelta(dt, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, 
 
     years: int
         The number of years added to dt.year is years plus any additional years gained or lost by the months modifier.
-
+        
     Returns
     -------
     dt: datetime.date or datetime.datetime
@@ -246,12 +246,12 @@ def timedelta(dt, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, 
     # month at this point is simply the number of months to add starting from January and then + 1 because January = 1.
     month = int((months % 12) + 1)
     if type(dt) == datetime.datetime:
-        dt = datetime.datetime(year, month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond)
+        dt = datetime.datetime(year, month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, tzinfo=dt.tzinfo)
         dt += datetime.timedelta(days=days, seconds=seconds, microseconds=microseconds, milliseconds=milliseconds, minutes=minutes, hours=hours, weeks=weeks)
     elif type(dt) == datetime.date:
         dt = datetime.datetime(year, month, dt.day)
         dt += datetime.timedelta(days=days, seconds=seconds, microseconds=microseconds, milliseconds=milliseconds, minutes=minutes, hours=hours, weeks=weeks)
-        dt = datetime.date(dt.year, dt.month, dt.day)
+        dt = datetime.date(dt.year, dt.month, dt.day, tzinfo=dt.tzinfo)
     else:
         raise Exception('Incompatible type = ', type(dt), '. Only datetime.datetime and datetime.date are currently supported.')
     return dt
