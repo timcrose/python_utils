@@ -5,7 +5,8 @@ Created on Tue Feb  6 19:16:48 2018
 @author: timcrose
 """
 
-import csv, json, os, sys, pickle, time
+import csv, json, os, sys, time
+import dill
 from glob import glob
 import shutil, fnmatch, random
 from python_utils import time_utils, err_utils, list_utils
@@ -23,7 +24,7 @@ else:
         'functions')
 
 
-def write_pickle(fpath, data, fail_gracefully=False, verbose=False):
+def write_pickle(fpath, data, err_message='Failed to write pickle', fail_gracefully=False, verbose=False):
     '''
     fpath: str
         file path of pickle file (must include .pickle ext).
@@ -52,7 +53,7 @@ def write_pickle(fpath, data, fail_gracefully=False, verbose=False):
     # Write the python object data to the file with path fpath
     try:
         with open(fpath, "wb") as pickle_out:
-            pickle.dump(data, pickle_out)
+            dill.dump(data, pickle_out)
     except Exception as e:
         err_utils.handle_error(e=e, err_message=err_message, fail_gracefully=\
             fail_gracefully, verbose=verbose)
@@ -98,7 +99,7 @@ def read_pickle(fpath, fail_gracefully=True, verbose=False):
     # Load the pickled python object into python_obj
     try:
         with open(fpath, 'rb') as f:
-            python_obj = pickle.load(f)
+            python_obj = dill.load(f)
         return python_obj
     except Exception as e:
         err_message = 'Could not load the file at fpath =  ' + fpath

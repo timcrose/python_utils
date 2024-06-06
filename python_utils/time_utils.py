@@ -226,6 +226,9 @@ def timedelta(dt, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, 
     4. If datetime.date is the input, then items like minutes and seconds will still be used (from 00:00:00), and then
         the resulting year, month, and day will be used to return the final datetime.date object.
     '''
+    datetime_time = type(dt) == datetime.time
+    if datetime_time:
+        dt = datetime.datetime(2000, 1, 1, dt.hour, dt.minute, dt.second, dt.microsecond)
     if months != int(months):
         raise ValueError('months must be a whole number. Got months = ', months)
     if years != int(years):
@@ -254,6 +257,8 @@ def timedelta(dt, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, 
         dt = datetime.date(dt.year, dt.month, dt.day, tzinfo=dt.tzinfo)
     else:
         raise Exception('Incompatible type = ', type(dt), '. Only datetime.datetime and datetime.date are currently supported.')
+    if datetime_time:
+        dt = datetime.time(dt.hour, dt.minute, dt.second, dt.microsecond)
     return dt
 
 

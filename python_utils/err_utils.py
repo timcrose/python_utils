@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from numbers import Number
-from inspect import getframeinfo, stack
+from inspect import getframeinfo, stack, isclass
 from python_utils import math_utils
 
 def print_iterable(iterable, idx, arg_name, verbosity_level):
@@ -275,15 +275,17 @@ def handle_error(e=None, err_message='Alert', fail_gracefully=False,
         if e is None:
             raise Exception(err_message)
         else:
-            if not issubclass(e, BaseException):
-                raise Exception('e', e, \
-                        'is not a valid subclass of BaseException')
-
-            if verbose:
-                print(err_message)
-            raise e(err_message)
-
-
+            if isclass(e):
+                if issubclass(e, BaseException):
+                    raise e(err_message)
+                else:
+                    raise e
+            else:
+                if verbose:
+                    print(err_message)
+                raise Exception('e', e, 'is not a valid subclass of BaseException')
+                
+                
 def try_assign(func, *input_params, fail_value=None, \
         err_message='Alert; could call func with given input parameters', \
         fail_gracefully=False, verbose=False):
