@@ -13,7 +13,7 @@ from python_utils import time_utils, err_utils, list_utils
 import platform
 import numpy as np
 import pandas as pd
-
+from copy import deepcopy
 python_version = float(platform.python_version()[:3])
 if python_version >= 3.0:
     from python_utils.file_utils3 import *
@@ -325,7 +325,7 @@ def rm(paths, fail_if_cant_rm=False, verbose=True):
 
 def mv(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=True, overwrite=True):
     if type(dest_dir) is not str:
-        raise IOError('Cannot move, destination path needs to be of type str. dest_fpath:', dest_fpath)
+        raise IOError('Cannot move, destination path needs to be of type str. dest_dir:', dest_dir)
     #copy then delete. This is the most robust because other methods aren't faster if src and dest are on a different disk. If
     # they are on the same disk, then os.rename is faster, but only works if src and dest are files (not directories).
     cp(src_paths_list, dest_dir, dest_fname=dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose, overwrite=overwrite)
@@ -394,10 +394,10 @@ def get_dct_from_json(path, load_type='load', timeout=1.5, interval_delay=0.5):
     return dct
 
 
-def write_to_file(fname, str_to_write, mode='w', timeout=1.5, interval_delay=0.5):
+def write_to_file(fpath, str_to_write, mode='w', timeout=1.5, interval_delay=0.5):
     '''
-    fname: str
-        path to file including file name
+    fpath: str
+        full path to file (relative or absolute)
     str_to_write: str
         str to write to the file
     mode: str
@@ -405,7 +405,7 @@ def write_to_file(fname, str_to_write, mode='w', timeout=1.5, interval_delay=0.5
     
     Purpose: write a string to a file.
     '''
-    f = open_file(path, mode=mode, timeout=timeout, interval_delay=interval_delay)
+    f = open_file(fpath, mode=mode, timeout=timeout, interval_delay=interval_delay)
     f.write(str_to_write)
     f.close()
 
@@ -415,7 +415,7 @@ def lock_file(fpath, lockfile_message='locked', total_timeout=100000, time_frame
     wait_for_file_to_vanish(fpath, total_timeout=total_timeout, time_frame=time_frame,  go_ahead_if_out_of_time=go_ahead_if_out_of_time)
     read_lockfile_message = 'Nonelkjlkj'
     while read_lockfile_message != lockfile_message:
-        f = open_file(path, mode='w', timeout=timeout, interval_delay=interval_delay)
+        f = open_file(fpath, mode='w', timeout=timeout, interval_delay=interval_delay)
         f.write(lockfile_message)
         f.close()
         time_utils.sleep(0.05)
@@ -528,7 +528,7 @@ def read_fragile_csv(fpath):
         except:
             time_utils.sleep(0.1)
         if time_utils.gtime() - start_time > 1000:
-            raise Exception('Took more than 1000 seconds to try to read', tasks_fpath,'\nExpected the file to be existant and non-empty.')
+            raise Exception('Took more than 1000 seconds to try to read', fpath,'\nExpected the file to be existant and non-empty.')
     return df
 
 
@@ -666,7 +666,7 @@ def replace_text_in_file(fpath, search_str, replacement_str=None, replacement_li
                 if newline_i == -1:
                     last_i = len(lines[i]) - 1
                 else:
-                    last_i = deepcopy(newline_i) - 1
+                    last_i = newline_i - 1
                 search_str_i = lines[i].find(search_str)
                 num_chars_til_end = last_i - search_str_i + 1
                 new_replacement_str = replacement_str[:num_chars_til_end]
