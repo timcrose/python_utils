@@ -723,3 +723,22 @@ def where_mat(condition):
     of just the index.
     '''
     return arrs_to_matrix(*np.where(condition))
+
+
+def enum(*sequential, **named):
+    """
+    Purpose
+    -------
+    Handy way to fake an enumerated type in Python. Useful, for example, for 
+    organizing MPI tags.
+    http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
+    
+    Example
+    -------
+    tags = enum('READY', 'DONE', 'EXIT', 'START')
+    comm.send(data, dest=1, tag=tags.START)
+    """
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    return type('Enum', (), enums)
+
+
