@@ -6,5 +6,5 @@ setup(name = 'python_utils',
       author = 'T. Rose',
       url = 'https://github.com/timcrose/python_utils',
       packages = find_packages(),
-      install_requires = ['numpy', 'pandas']
+      install_requires = ['numpy', 'pandas', 'dill']
      )
