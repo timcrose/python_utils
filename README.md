@@ -6,3 +6,10 @@ Utility functions for common python operations for files, time, lists, math, pan
   ```
   python setup.py develop
   ```
+
+## Example use
+
+  ```
+  from python_utils import file_utils
+  found_fpaths = file_utils.find('.', '*.txt')
+  ```
