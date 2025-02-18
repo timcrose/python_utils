@@ -641,3 +641,111 @@ def poly1d_fit(x, y, degree, get_r_sqrd=True, get_local_maximums=False,
                                     + [fit['p'](lower_endpoint)])
          
     return fit
+
+
+def update_mean(prev_mean, prev_n, new_data):
+    '''
+    Update the mean without having the previous data, only the previous
+    mean and number of data points used to calculate the previous mean.
+
+    Parameters
+    ----------
+    prev_mean: float
+        The mean of data points before new_data is accounted for.
+        
+    prev_n: int
+        The number of data points used to calculate the prev_mean.
+        
+    new_data: scalar or 1D iterable
+        New data point(s) to factor into the mean.
+
+    Returns
+    -------
+    updated_mean: float
+        Mean now that new_data have been included.
+        
+    Method
+    ------
+    The mean is the sum of the data points divided by the number of data points.
+    This means that to update a mean given new data, one can isolate the previous
+    sum by multiplying by the previous number of data points. Then, add the new
+    data points to that sum, and divide that by len(new_data) + prev_n
+    '''
+    if not hasattr(new_data, '__iter__'):
+        return (prev_mean * prev_n + new_data) / (prev_n + 1)
+    return (prev_mean * prev_n + sum(new_data)) / (prev_n + len(new_data))
+
+
+def update_mean_std_n(prev_mean, prev_std, prev_n, new_data, ddof=0, num_decimal_places=7):
+    '''
+    Update the standard deviation without having the previous data, only the previous
+    standard deviation, mean, and number of data points used to calculate the 
+    previous mean and standard deviation.
+
+    Parameters
+    ----------
+    prev_mean: float
+        The mean of data points before new_data is accounted for.
+    
+    prev_std: float
+        The standard deviation of data points before new_data is accounted for.
+        
+    prev_n: int
+        The number of data points used to calculate the prev_mean.
+        
+    new_data: scalar or 1D iterable
+        New data point(s) to factor into the mean.
+        
+    ddof: int
+        Means Delta Degrees of Freedom. The divisor used in calculations is 
+        (N - ddof), where N represents the number of elements. When ddof is 0,
+        you are using the population standard deviation. When ddof is 1, you 
+        are using the sample standard deviation.
+        
+    num_decimal_places: int
+        Number of decimal places to round the radical and results to.
+
+    Returns
+    -------
+    updated_mean, updated_std, updated_n: float
+        The standard deviation now that new_data have been included.
+        
+    Method
+    ------
+    The sample standard deviation is sqrt((1/(n-1)) * (-n * mu**2 + Sum_i[xi**2])
+    So, you can square prev_std, multiply by (n-1), and add (n*mu**2) to get 
+    the previous sum of the squared data points (where mu is prev_mean and n is prev_n).
+    Sum the squares of each new data point in new_data, and add that to this previous
+    sum. Then, update the mean and update n. Then, calculate the updated standard
+    deviation by plugging the updated mean, n, and sum of squared data points into
+    the formula.
+    
+    If the number of total data points is 0 or 1, just return 0.
+    
+    Notes
+    -----
+    The Cauchy-Schwarz inequality states sum(ai * bi) <= sum(ai**2)sum(bi**2).
+    When ai=1 and bi=xi we get sum(xi)**2 <= n * sum(xi**2) which means that the
+    radical for the standard deviation equation is always positive because,
+    looking at the numerator since updated_n - ddof is >= 1 otherwise we return 0 we have
+    (sum(xi**2) - n * mean**2) >= 0
+    (sum(xi**2) - (1/n) * sum(xi)**2) >= 0
+    (n * sum(xi**2) >= sum(xi)**2)
+    '''
+    if not hasattr(new_data, '__iter__'):
+        new_data = [new_data]
+    updated_n = prev_n + len(new_data)
+    if updated_n < ddof + 1:
+        return 0
+    prev_sum_of_squares = (prev_std**2) * (prev_n - ddof) + prev_n * (prev_mean**2)
+    updated_sum_of_squares = prev_sum_of_squares + sum([x**2 for x in new_data])
+    updated_mean = update_mean(prev_mean, prev_n, new_data)
+    if np.around((updated_sum_of_squares - updated_n * (updated_mean**2)) / (updated_n - ddof), num_decimal_places) < 0 or np.any(np.isnan([prev_n,prev_mean,prev_std,prev_sum_of_squares,updated_sum_of_squares,updated_n,updated_mean,ddof])):
+        print('prev_n', prev_n, 'prev_mean', prev_mean, 'prev_std', prev_std, 'prev_sum_of_squares', prev_sum_of_squares)
+        print('updated_sum_of_squares', updated_sum_of_squares, 'updated_n', updated_n, 'updated_mean', updated_mean, 'ddof', ddof)
+        print('new_data', new_data)
+        print('Radical:', np.around((updated_sum_of_squares - updated_n * (updated_mean**2)) / (updated_n - ddof), num_decimal_places))
+        raise ValueError('radical is < 0 or nan found')
+    updated_std = np.sqrt(np.around((updated_sum_of_squares - updated_n * (updated_mean**2)) / (updated_n - ddof), num_decimal_places))
+    return np.around(updated_mean, num_decimal_places), np.around(updated_std, num_decimal_places), updated_n
+    
