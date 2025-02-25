@@ -1,4 +1,5 @@
 from python_utils import file_utils, time_utils
+import socket, hashlib
 
 def root_print(rank, *print_message):
    if rank == 0:
@@ -131,3 +132,29 @@ def split_up_list_evenly(lst, rank, size, include_master=True):
     return lst
 
 
+def split_by_node(comm, key='rank'):
+    '''
+    Create split MPI communicators from a common communicator, one for each
+    node (hostname) in the set of hostnames where the ranks in comm reside.
+
+    Parameters
+    ----------
+    comm: mpi4py communicator
+        The communicator to split.
+        
+    key: int or 'rank'
+        This int determines the new rank order in the newly created communicator.
+        ranks with a lower key will receive a lower rank in the new communicator.
+        'rank' will mean key = comm.rank.
+
+    Returns
+    -------
+    node_comm: mpi4py communicator
+        This communicator only contains ranks on a single node.
+    '''
+    if key == 'rank':
+        key = comm.rank
+    hostname = socket.gethostname()
+    color = int(hashlib.sha1(hostname.encode('utf-8')).hexdigest(), 16) % (2**31)
+    node_comm = comm.Split(color=color, key=key)
+    return node_comm
