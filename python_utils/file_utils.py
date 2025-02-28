@@ -7,6 +7,10 @@ Created on Tue Feb  6 19:16:48 2018
 
 import csv, json, os, sys, time
 import dill
+try:
+    import h5py
+except:
+    pass
 from glob import glob
 import shutil, fnmatch, random
 from python_utils import time_utils, err_utils, list_utils
@@ -834,7 +838,7 @@ def format_all_paths_cleanly(path_lst):
     return [format_path_cleanly(path) for path in path_lst]
 
 
-def write_h5_file(h5_fpath, data, attrs_dct={}, dset_name=None, overwrite=True, fail_if_already_exists=False, verbose=False):
+def write_h5_file(h5_fpath, data, attrs_dct={}, dset_name=None, overwrite=True, fail_if_already_exists=False, verbose=False, include_write_check=False):
     '''
     h5_fpath: str
         Path to .h5 output file
@@ -861,13 +865,18 @@ def write_h5_file(h5_fpath, data, attrs_dct={}, dset_name=None, overwrite=True, 
     verbose: bool
         True: If exists and fail_if_already_exists and verbose, print that it already exists.
         False: pass
+    
+    include_write_check: bool
+        True: add a 'writing_complete' attribute to the attrs dict last. This enables
+            reading this file and ensuring that the writing process was not
+            abruptly terminated leaving an incomplete file.
+        False: pass
 
     Return: None
 
     Purpose: Write an h5 file using h5py to contain a dataset supplied by
         data and attributes supplied by attrs_dct.
     '''
-    import h5py
     if os.path.exists(h5_fpath):
         if not overwrite:
             if fail_if_already_exists:
@@ -881,9 +890,12 @@ def write_h5_file(h5_fpath, data, attrs_dct={}, dset_name=None, overwrite=True, 
         dset = hf.create_dataset(dset_name, data=data)
         for key in attrs_dct:
             dset.attrs[key] = attrs_dct[key]
+        if include_write_check:
+            hf.attrs['writing_complete'] = True
 
 
-def read_h5_file(h5_fpath, row_start_idx=0, row_end_idx=None, col_start_idx=0, col_end_idx=None, dset_name=None, return_data=True, return_attrs=True):
+def read_h5_file(h5_fpath, row_start_idx=0, row_end_idx=None, col_start_idx=0, col_end_idx=None, dset_name=None, return_data=True, return_attrs=True, query_write_check=False,
+                 fail_gracefully=False, verbose=False):
     '''
     h5_fpath: str
         Path to .h5 file to read
@@ -900,47 +912,83 @@ def read_h5_file(h5_fpath, row_start_idx=0, row_end_idx=None, col_start_idx=0, c
         True: Return a dictionary where keys are those in dset.attrs and values are dset.attrs[key]
         False: Return None in place of this dictionary.
 
+    query_write_check: bool
+        True: Check to make sure the file exists and was successfully written to via the 'writing_complete' attribute
+            of the root level attrs dict. If writing was complete, then return data, dset attrs if requested.
+            If writing was not complete, raise an exception if not fail_gracefully. Else, return False, False if 
+            either return_data or return_attrs is True, but return False neither were True.
+        False: pass
+            
+    fail_gracefully: bool
+        True: If an error occurs, raise an exception.
+        False: If an error occurs, return False, False or False if query_write_check is True.
+        If query_write_check is False, return False, False.
+        
+    verbose: bool
+        True: print messages
+        False: do not print messages
+
     Return:
         data: np.array or None
             Data contained in the dataset referred to by dset_name in h5_fpath.
 
         attrs_dct: dict or None
             Keys are those in dset.attrs and values are dset.attrs[key]
-
+            
     Purpose: Read dataset referred to by dset_name in h5_fpath and return the data inside and/or
         the attribute dictionary, if desired.
     '''
-    import h5py
-    if dset_name is None:
-        dset_name = fname_from_fpath(h5_fpath)
-    with h5py.File(h5_fpath, 'r') as hf:
-        dset = hf[dset_name]
-        if return_data and return_attrs:
-            if row_end_idx is None:
-                if col_end_idx is None:
-                    return dset[row_start_idx : , col_start_idx : ], {key:dset.attrs[key] for key in dset.attrs}
+    try:    
+        if dset_name is None:
+            dset_name = fname_from_fpath(h5_fpath)
+        with h5py.File(h5_fpath, 'r') as hf:
+            if query_write_check:
+                if 'writing_complete' in hf.attrs and hf.attrs['writing_complete']:
+                    if not return_data and not return_attrs:
+                        return True
                 else:
-                    return dset[row_start_idx : , col_start_idx : col_end_idx + 1], {key:dset.attrs[key] for key in dset.attrs}
+                    if return_data or return_attrs:
+                        return False, False
+                    else:
+                        return False
+            dset = hf[dset_name]
+            if return_data and return_attrs:
+                if row_end_idx is None:
+                    if col_end_idx is None:
+                        return dset[row_start_idx : , col_start_idx : ], {key:dset.attrs[key] for key in dset.attrs}
+                    else:
+                        return dset[row_start_idx : , col_start_idx : col_end_idx + 1], {key:dset.attrs[key] for key in dset.attrs}
+                else:
+                    if col_end_idx is None:
+                        return dset[row_start_idx : row_end_idx + 1, col_start_idx : ], {key:dset.attrs[key] for key in dset.attrs}
+                    else:
+                        return dset[row_start_idx : row_end_idx + 1, col_start_idx : col_end_idx + 1], {key:dset.attrs[key] for key in dset.attrs}
+            if return_data and not return_attrs:
+                if row_end_idx is None:
+                    if col_end_idx is None:
+                        return dset[row_start_idx :, col_start_idx :], None
+                    else:
+                        return dset[row_start_idx :, col_start_idx : col_end_idx + 1], None
+                else:
+                    if col_end_idx is None:
+                        return dset[row_start_idx : row_end_idx + 1, col_start_idx :], None
+                    else:
+                        return dset[row_start_idx : row_end_idx + 1, col_start_idx : col_end_idx + 1], None
+            if not return_data and return_attrs:
+                return None, {key:dset.attrs[key] for key in dset.attrs}
+            if not return_data and not return_attrs:
+                return None, None
+    except Exception as e:
+        if fail_gracefully:
+            if verbose:
+                print(e)
+            if query_write_check:
+                if return_data or return_attrs:
+                    return False, False
+                else:
+                    return False
             else:
-                if col_end_idx is None:
-                    return dset[row_start_idx : row_end_idx + 1, col_start_idx : ], {key:dset.attrs[key] for key in dset.attrs}
-                else:
-                    return dset[row_start_idx : row_end_idx + 1, col_start_idx : col_end_idx + 1], {key:dset.attrs[key] for key in dset.attrs}
-        if return_data and not return_attrs:
-            if row_end_idx is None:
-                if col_end_idx is None:
-                    return dset[row_start_idx :, col_start_idx :], None
-                else:
-                    return dset[row_start_idx :, col_start_idx : col_end_idx + 1], None
-            else:
-                if col_end_idx is None:
-                    return dset[row_start_idx : row_end_idx + 1, col_start_idx :], None
-                else:
-                    return dset[row_start_idx : row_end_idx + 1, col_start_idx : col_end_idx + 1], None
-        if not return_data and return_attrs:
-            return None, {key:dset.attrs[key] for key in dset.attrs}
-        if not return_data and not return_attrs:
-            return None, None
+                return False, False
 
 
 def grep_found_in_files(search_str, fpaths):
