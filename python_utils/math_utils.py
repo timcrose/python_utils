@@ -837,13 +837,13 @@ def update_mean_std_n_with_stats(prev_mean, prev_std, prev_n, new_mean, new_std,
     
     If the number of total data points is 0 or 1, just return 0.
     '''
+    updated_mean = update_mean_with_stats(prev_mean, prev_n, new_mean, new_n)
     updated_n = prev_n + new_n
     if updated_n < ddof + 1:
-        return 0
+        return np.around(updated_mean, num_decimal_places), 0.0, updated_n
     prev_sum_of_squares = (prev_std**2) * (prev_n - ddof) + prev_n * (prev_mean**2)
     new_sum_of_squares = (new_std**2) * (new_n - ddof) + new_n * (new_mean**2)
     updated_sum_of_squares = prev_sum_of_squares + new_sum_of_squares
-    updated_mean = update_mean_with_stats(prev_mean, prev_n, new_mean, new_n)
     radical = np.around((updated_sum_of_squares - updated_n * (updated_mean**2)) / (updated_n - ddof), num_decimal_places)
     if radical < 0 or np.any(np.isnan([prev_n,prev_mean,prev_std,prev_sum_of_squares,updated_sum_of_squares,updated_n,updated_mean,ddof])):
         print('prev_n', prev_n, 'prev_mean', prev_mean, 'prev_std', prev_std, 'prev_sum_of_squares', prev_sum_of_squares)
