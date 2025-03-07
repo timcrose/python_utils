@@ -1,6 +1,7 @@
 from python_utils import file_utils, time_utils
 import socket, hashlib
 
+
 def root_print(rank, *print_message):
    if rank == 0:
       print(print_message)

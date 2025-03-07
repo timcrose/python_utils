@@ -703,7 +703,7 @@ def update_mean_std_n(prev_mean, prev_std, prev_n, new_data, ddof=0, num_decimal
         are using the sample standard deviation.
         
     num_decimal_places: int
-        Number of decimal places to round the radical and results to.
+        Number of decimal places to use for atol when determining whether the radical is 0.
 
     Returns
     -------
@@ -732,23 +732,36 @@ def update_mean_std_n(prev_mean, prev_std, prev_n, new_data, ddof=0, num_decimal
     (sum(xi**2) - (1/n) * sum(xi)**2) >= 0
     (n * sum(xi**2) >= sum(xi)**2)
     '''
+    if ddof > 1:
+        raise ValueError('ddof must be 0 or 1')
+    if np.any(np.isnan([prev_n, prev_mean, prev_std, new_data, ddof, num_decimal_places])):
+        print('prev_n', prev_n, 'prev_mean', prev_mean, 'prev_std', prev_std)
+        print('new_data', new_data, 'ddof', ddof, 'num_decimal_places', num_decimal_places)
+        raise ValueError('Nan in input arguments.')
     if not hasattr(new_data, '__iter__'):
         new_data = [new_data]
+    if prev_n == 0:
+        if len(new_data) == 0:
+            return 0, 0, 0
+    elif len(new_data) == 0:
+        return prev_mean, prev_std, prev_n
+    updated_mean = update_mean(prev_mean, prev_n, new_data)
     updated_n = prev_n + len(new_data)
-    if updated_n < ddof + 1:
-        return 0
+    if updated_n < 2:
+        return updated_mean, 0.0, updated_n
     prev_sum_of_squares = (prev_std**2) * (prev_n - ddof) + prev_n * (prev_mean**2)
     updated_sum_of_squares = prev_sum_of_squares + sum([x**2 for x in new_data])
-    updated_mean = update_mean(prev_mean, prev_n, new_data)
-    radical = np.around((updated_sum_of_squares - updated_n * (updated_mean**2)) / (updated_n - ddof), num_decimal_places)
-    if radical < 0 or np.any(np.isnan([prev_n,prev_mean,prev_std,prev_sum_of_squares,updated_sum_of_squares,updated_n,updated_mean,ddof])):
-        print('prev_n', prev_n, 'prev_mean', prev_mean, 'prev_std', prev_std, 'prev_sum_of_squares', prev_sum_of_squares)
-        print('updated_sum_of_squares', updated_sum_of_squares, 'updated_n', updated_n, 'updated_mean', updated_mean, 'ddof', ddof)
+    radical = (updated_sum_of_squares - updated_n * (updated_mean**2)) / (updated_n - ddof)
+    if np.isclose(0, radical, atol=10**(-num_decimal_places)):
+        radical = 0.0
+    if radical < 0 or np.any(np.isnan([prev_sum_of_squares, updated_sum_of_squares, updated_n, updated_mean])):
+        print('prev_sum_of_squares', prev_sum_of_squares,'updated_sum_of_squares', updated_sum_of_squares)
+        print('updated_n', updated_n, 'updated_mean', updated_mean)
         print('new_data', new_data)
         print('Radical:', radical)
         raise ValueError('radical is < 0 or nan found')
     updated_std = np.sqrt(radical)
-    return np.around(updated_mean, num_decimal_places), np.around(updated_std, num_decimal_places), updated_n
+    return updated_mean, updated_std, updated_n
     
 
 def update_mean_with_stats(prev_mean, prev_n, new_mean, new_n):
@@ -818,7 +831,7 @@ def update_mean_std_n_with_stats(prev_mean, prev_std, prev_n, new_mean, new_std,
         are using the sample standard deviation.
         
     num_decimal_places: int
-        Number of decimal places to round the radical and results to.
+        Number of decimal places to use for atol when determining whether the radical is 0.
 
     Returns
     -------
@@ -837,18 +850,28 @@ def update_mean_std_n_with_stats(prev_mean, prev_std, prev_n, new_mean, new_std,
     
     If the number of total data points is 0 or 1, just return 0.
     '''
+    if ddof > 1:
+        raise ValueError('ddof must be 0 or 1')
     if np.any(np.isnan([prev_mean, prev_std, prev_n, new_mean, new_std, new_n, ddof, num_decimal_places])):
         print('prev_n', prev_n, 'prev_mean', prev_mean, 'prev_std', prev_std, 'prev_sum_of_squares', prev_sum_of_squares)
         print('new_n', new_n, 'new_mean', new_mean, 'new_std', new_std, 'new_sum_of_squares', new_sum_of_squares)
         raise ValueError('Nan in input arguments.')
+    if prev_n == 0:
+        if new_n == 0:
+            return 0, 0, 0
+        return new_mean, new_std, new_n
+    elif new_n == 0:
+        return prev_mean, prev_std, prev_n
     updated_mean = update_mean_with_stats(prev_mean, prev_n, new_mean, new_n)
     updated_n = prev_n + new_n
-    if updated_n < ddof + 1:
-        return np.around(updated_mean, num_decimal_places), 0.0, updated_n
+    if updated_n < 2:
+        return updated_mean, 0.0, updated_n
     prev_sum_of_squares = (prev_std**2) * (prev_n - ddof) + prev_n * (prev_mean**2)
     new_sum_of_squares = (new_std**2) * (new_n - ddof) + new_n * (new_mean**2)
     updated_sum_of_squares = prev_sum_of_squares + new_sum_of_squares
-    radical = np.around((updated_sum_of_squares - updated_n * (updated_mean**2)) / (updated_n - ddof), num_decimal_places)
+    radical = (updated_sum_of_squares - updated_n * (updated_mean**2)) / (updated_n - ddof)
+    if np.isclose(0, radical, atol=10**(-num_decimal_places)):
+        radical = 0.0
     if radical < 0 or np.any(np.isnan([prev_sum_of_squares,new_sum_of_squares,updated_sum_of_squares,updated_n,updated_mean,ddof])):
         print('prev_n', prev_n, 'prev_mean', prev_mean, 'prev_std', prev_std, 'prev_sum_of_squares', prev_sum_of_squares)
         print('new_n', new_n, 'new_mean', new_mean, 'new_std', new_std, 'new_sum_of_squares', new_sum_of_squares)
@@ -856,4 +879,4 @@ def update_mean_std_n_with_stats(prev_mean, prev_std, prev_n, new_mean, new_std,
         print('Radical:', radical)
         raise ValueError('radical is < 0 or nan found')
     updated_std = np.sqrt(radical)
-    return np.around(updated_mean, num_decimal_places), np.around(updated_std, num_decimal_places), updated_n
+    return updated_mean, updated_std, updated_n
