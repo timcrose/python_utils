@@ -5,6 +5,7 @@ Created on Fri Jul 30 10:28:26 2021
 @author: trose
 """
 from configparser import ConfigParser
+from type_utils import Callable, T, U, Optional, Any
 
 
 class Instruct(ConfigParser):
@@ -12,7 +13,7 @@ class Instruct(ConfigParser):
     This is the class that records the instruction for structural generation
     All of the information is set in the dictionary self.I
     '''
-    def __init__(self, config_fpath):
+    def __init__(self, config_fpath: str) -> None:
         '''
         config_fpath: str
             Path to .conf file.
@@ -40,7 +41,7 @@ class Instruct(ConfigParser):
         self.read(config_fpath)
         
 
-    def get_value(self, section, option, desired_type=str, required_to_be_in_conf=False, default_value=None):
+    def get_value(self, section: str, option: str, desired_type: Callable[[T], U]=str, required_to_be_in_conf: bool=False, default_value: Optional[Any]=None) -> Optional[U]:
         '''
         section: str
             Section title in conf file.
@@ -103,7 +104,7 @@ class Instruct(ConfigParser):
                         'section:', section, 'option:', option)
             
 
-    def get_config_dct(self):
+    def get_config_dct(self) -> None:
         '''
         Returns
         -------

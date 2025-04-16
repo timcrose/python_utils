@@ -13,8 +13,10 @@ from time import ctime
 from time import localtime
 from time import strftime
 from time import strptime
+from type_utils import Optional, Int, Scalar, Union
 
-def get_timestamp_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p'):
+
+def get_timestamp_from_date_str(date_str: str, date_fmt: str='%m/%d/%Y, %I:%M:%S %p') -> float:
     '''
     date_str: str
         String of date and time with format corresponding to date_fmt
@@ -22,7 +24,7 @@ def get_timestamp_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p'):
     date_fmt: str
         Format string of date_str according to datetime.datetime.datetime.datetime documentation.
 
-    Return: number
+    Return: float
         Number of seconds since the epoch as measured by datetime.datetime.
     
     Purpose: Get the number of seconds since the epoch as measured by datetime.datetime when
@@ -31,12 +33,13 @@ def get_timestamp_from_date_str(date_str, date_fmt='%m/%d/%Y, %I:%M:%S %p'):
     dt = datetime.datetime.strptime(date_str, date_fmt)
     return dt.timestamp()
 
-def get_date_str_from_timestamp(timestamp, date_fmt='%m/%d/%Y, %H:%M:%S'):
+
+def get_date_str_from_timestamp(timestamp: float, date_fmt: str='%m/%d/%Y, %H:%M:%S') -> str:
     dt = datetime.datetime.fromtimestamp(timestamp)
     return dt.strftime(date_fmt)
      
 
-def get_greg_time_from_time_str(time_str='00:00:00', ds=None, DATE_FMT='%Y-%m-%d', TIME_FMT='%H:%M:%S'):
+def get_greg_time_from_time_str(time_str: str='00:00:00', ds: Optional[str]=None, DATE_FMT: str='%Y-%m-%d', TIME_FMT: str='%H:%M:%S') -> float:
 
     if ds is None:
         #default to today
@@ -47,12 +50,14 @@ def get_greg_time_from_time_str(time_str='00:00:00', ds=None, DATE_FMT='%Y-%m-%d
 
     return greg_time
 
-def get_secs_from_time_str(time_str='00:00:00', TIME_FMT='%H:%M:%S'):
+
+def get_secs_from_time_str(time_str: str='00:00:00', TIME_FMT: str='%H:%M:%S') -> float:
     struct_time = strptime(time_str, TIME_FMT)
     secs = struct_time.tm_hour * 3600.0 + struct_time.tm_min * 60.0 + float(struct_time.tm_sec)
     return secs
 
-def get_greg_from_mdYHMS(mon, day, yr, hr, minute, sec):
+
+def get_greg_from_mdYHMS(mon: Int, day: Int, yr: Int, hr: Int, minute: Int, sec: Scalar) -> float:
     fmt = '%m-%d-%Y %H:%M:%S'
     s = str(mon).zfill(2) + '-'  + str(day).zfill(2) + '-' + str(yr).zfill(4) + ' ' + str(hr).zfill(2) + ':' + str(minute).zfill(2) + ':' + str(int(sec)).zfill(2)
     dt = datetime.datetime.strptime(s, fmt)
@@ -60,7 +65,8 @@ def get_greg_from_mdYHMS(mon, day, yr, hr, minute, sec):
     greg_time = mktime(tt)
     return greg_time
 
-def delay_start(time_of_day_to_start):
+
+def delay_start(time_of_day_to_start: str) -> None:
     start_time_greg = get_greg_time_from_time_str(time_str=time_of_day_to_start)
 
     if gtime() > start_time_greg:
@@ -71,11 +77,12 @@ def delay_start(time_of_day_to_start):
 
     sleep(delay_time)
     
-def get_now_MM_DD_YYYY():
+    
+def get_now_MM_DD_YYYY() -> str:
     return str(datetime.datetime.now().month) + '_' + str(datetime.datetime.now().day) + '_' + str(datetime.datetime.now().year)
 
 
-def wait_til_weekday(time_of_day_to_start='09:00:00'):
+def wait_til_weekday(time_of_day_to_start: str='09:00:00') -> None:
     weekno = datetime.datetime.today().weekday()
 
     #Monday is 0 and Sunday is 6
@@ -84,34 +91,15 @@ def wait_til_weekday(time_of_day_to_start='09:00:00'):
         weekno = datetime.datetime.today().weekday()
 
 
-def wait_til_weekday_old(time_of_day_to_start='09:15:00'):
-    weekno = datetime.datetime.today().weekday()
-    weekno_original = datetime.datetime.today().weekday()
-
-    if weekno_original == 4:
-        start_time_greg = get_greg_time_from_time_str(time_str=time_of_day_to_start)
-        if gtime() < start_time_greg:
-            #trying to start today
-            return
-
-    # check if will be a weekday tmw
-    #Monday is 0 and Sunday is 6
-    #Wait until today and tmw is a weekday
-    #today is a weekday if weekno is 0, 1, 2, 3, 4
-    #tmw is a weekday if weekno is 0, 1, 2, 3, 6
-    #So today is a weekday and tmw is a weekday if weekno is 0, 1, 2, 3
-    #But if we started the program on Friday morning (before the requested start time), then we should also allow it to exit the loop
-    while weekno not in [0, 1, 2, 3]:
-        sleep(3666)
-        weekno = datetime.datetime.today().weekday()
-
-
-def get_date_time_str_from_greg(greg):
+def get_date_time_str_from_greg(greg: float) -> str:
     return ctime(int(greg))
-def get_time_str_from_greg(greg):
+
+
+def get_time_str_from_greg(greg: float) -> str:
     return strftime("%H:%M:%S", localtime(greg))
 
-def day_of_week_from_date_str(date_str, delim='_'):
+
+def day_of_week_from_date_str(date_str: str, delim: str='_') -> int:
     '''
     date_str: str
         must be of format month_day_year. e.g. 12_20_2018 (or other delimiter)
@@ -122,10 +110,10 @@ def day_of_week_from_date_str(date_str, delim='_'):
     '''
     month, day, year = [int(i) for i in date_str.split(delim)]
     born = datetime.date(year, month, day)
-    #return born.strftime('%A') Day name like "Sunday"
     return born.weekday()
 
-def get_date_str_from_today(delimiter='_'):
+
+def get_date_str_from_today(delimiter: str='_') -> str:
     '''
     month day year format
     '''
@@ -136,7 +124,9 @@ def get_date_str_from_today(delimiter='_'):
     return date_str
 
 
-def timedelta(dt, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0, months=0, years=0):
+def timedelta(dt: Union[datetime.date, datetime.datetime], days: Int=0, 
+seconds: Int=0, microseconds: Int=0, milliseconds: Int=0, minutes: Int=0, 
+hours: Int=0, weeks: Int=0, months: Int=0, years: Int=0) -> Union[datetime.date, datetime.datetime]:
     '''
     dt: datetime.date or datetime.datetime
         Date object that you want to modify.
@@ -262,17 +252,30 @@ def timedelta(dt, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, 
     return dt
 
 
-def get_utc_time():
+def get_utc_time() -> datetime.datetime:
     return datetime.datetime.now(datetime.timezone.utc)
 
 
-def is_within_time_range(start_time, end_time, time_to_query=None, compare_hours_only=True, tzinfo=datetime.timezone.utc):
+def is_within_time_range(start_time: Union[datetime.time, datetime.datetime], 
+end_time: Union[datetime.time, datetime.datetime], time_to_query=None, 
+compare_hours_only=True, tzinfo=datetime.timezone.utc) -> bool:
     if time_to_query is None:
         time_to_query = get_utc_time()
-    if compare_hours_only:
-        start_time = start_time.replace(year=2000, month=1, day=1, tzinfo=tzinfo)
-        end_time = end_time.replace(year=2000, month=1, day=1, tzinfo=tzinfo)
-        time_to_query = time_to_query.replace(year=2000, month=1, day=1, tzinfo=tzinfo)
+    if type(start_time) == datetime.time and type(end_time) == datetime.time and time_to_query == datetime.time:
+        pass
+    elif compare_hours_only:
+        if type(start_time) == datetime.time:
+            start_time = datetime.datetime(2000, 1, 1, hour=start_time.hour, minute=start_time.minute, second=start_time.second, microsecond=start_time.microsecond, tzinfo=tzinfo)
+        else:
+            start_time = start_time.replace(year=2000, month=1, day=1, tzinfo=tzinfo)
+        if type(end_time) == datetime.time:
+            end_time = datetime.datetime(2000, 1, 1, hour=end_time.hour, minute=end_time.minute, second=end_time.second, microsecond=end_time.microsecond, tzinfo=tzinfo)
+        else:
+            end_time = end_time.replace(year=2000, month=1, day=1, tzinfo=tzinfo)
+        if type(time_to_query) == datetime.time:
+            time_to_query = datetime.datetime(2000, 1, 1, hour=time_to_query.hour, minute=time_to_query.minute, second=time_to_query.second, microsecond=time_to_query.microsecond, tzinfo=tzinfo)
+        else:
+            time_to_query = time_to_query.replace(year=2000, month=1, day=1, tzinfo=tzinfo)
         if end_time < start_time:
             start_time = timedelta(start_time, days=-1)
     return time_to_query <= end_time and time_to_query >= start_time

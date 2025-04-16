@@ -1,11 +1,11 @@
-from python_utils import list_utils
-
+import list_utils
+from type_utils import Optional, Tuple, Str_List, List, Int_List
 # Edit this list of characters as desired.
 BASE_ALPH = tuple("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`~!@#$%^&*()-=[]\;',./_+{}|:<>?")
 BASE_DICT = dict((c, v) for v, c in enumerate(BASE_ALPH))
 BASE_LEN = len(BASE_ALPH)
 
-def base_encode(string, base_dct=None):
+def base_encode(string: str, base_dct: Optional[dict]=None) -> int:
     '''
     string: str
         String that you want to encode into a number.
@@ -39,7 +39,7 @@ def base_encode(string, base_dct=None):
         return num
 
 
-def base_decode(num, base_alphabet=None):
+def base_decode(num: int, base_alphabet: Optional[Tuple]=None) -> str:
     '''
     num: int
         Number that is the encoded version of the string that you want to decode (turn into the string).
@@ -73,7 +73,7 @@ def base_decode(num, base_alphabet=None):
         return decoded_str
 
 
-def find_nth_occurrence_in_str(input_str, search_str, n, reverse=False, overlapping=0):
+def find_nth_occurrence_in_str(input_str: str, search_str: str, n: int, reverse: bool=False, overlapping: int=0) -> int:
     if reverse:
         match = input_str.rfind(search_str)
         while match >= 0 and n > 0:
@@ -88,7 +88,7 @@ def find_nth_occurrence_in_str(input_str, search_str, n, reverse=False, overlapp
         return match
 
 
-def encode_lst_to_ascii(lst_of_str):
+def encode_lst_to_ascii(lst_of_str: Str_List) -> List[bytes]:
     '''
     lst_of_str: list of str
         List of python strings that you want to encode into an ascii object
@@ -111,7 +111,7 @@ def encode_lst_to_ascii(lst_of_str):
     return lst_of_ascii_str
 
 
-def decode_lst_of_ascii(lst_of_ascii_str):
+def decode_lst_of_ascii(lst_of_ascii_str: List[bytes]) -> Str_List:
     '''
     lst_of_ascii_str: list of ascii-encoded strings
         List of ascii-encoded strings.
@@ -130,7 +130,7 @@ def decode_lst_of_ascii(lst_of_ascii_str):
     return lst_of_str
 
 
-def str_item_insert(string, item, i, after=True):
+def str_item_insert(string: str, item: str, i: int, after: bool=True) -> str:
     '''
     string: str
         string to operate on
@@ -158,7 +158,7 @@ def str_item_insert(string, item, i, after=True):
         return string[:i] + item + string[i:]
 
 
-def str_item_assignment(string, item, i):
+def str_item_assignment(string: str, item: str, i: int) -> str:
     '''
     string: str
         string to operate on
@@ -173,7 +173,7 @@ def str_item_assignment(string, item, i):
     '''
     return string[:i] + item + string[i + 1:] 
 
-def multiple_str_item_assignment(string, item_list, i_list):
+def multiple_str_item_assignment(string: str, item_list: Str_List, i_list: Int_List) -> str:
     '''
     string: str
         string to operate on
@@ -200,7 +200,7 @@ def multiple_str_item_assignment(string, item_list, i_list):
     return string
 
 
-def delete_items_from_str_by_idx(string, i_list):
+def delete_items_from_str_by_idx(string: str, i_list: Int_List) -> str:
     '''
     string: str
         string to operate on
@@ -219,7 +219,9 @@ def delete_items_from_str_by_idx(string, i_list):
     return modified_str
 
 
-def split_str_with_many_delimiters(string, delimiters=[' ', '(', ')', '.', ',', '[', ']', '/', '+', '-', '*', '%', '#', ':'], return_delim_indices=False):
+def split_str_with_many_delimiters(string: str, 
+delimiters: Str_List=[' ', '(', ')', '.', ',', '[', ']', '/', '+', '-', '*', '%', '#', ':'], 
+return_delim_indices: bool=False) -> Str_List:
     if return_delim_indices:
         delim_indicies = []
         for s, char in enumerate(string):

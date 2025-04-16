@@ -10,16 +10,18 @@ from glob import glob
 import shutil
 from python_utils import time_utils
 from copy import deepcopy
+from type_utils import Any, Int, Str_List, Union, Optional, Tuple, Int_List, Sequence
 
-def output_from_rank(message_args, rank, mode='a', output_fpath_prefix='output_from_world_rank_'):
+def output_from_rank(message_args: Any, rank: Int, mode: str='a', output_fpath_prefix: str='output_from_world_rank_') -> None:
     output_fpath = output_fpath_prefix + str(rank)
     with open(output_fpath, mode=mode) as f:
           print(message_args, file=f)
 
 
-def find(start_paths, name_search_str=None, recursive=True, \
-        absolute_paths=False, clean_format=True, find_files=True, \
-        find_dirs=True):
+def find(start_paths: Union[str, Str_List], 
+name_search_str: Optional[Union[str, Str_List]]=None, recursive: bool=True, 
+absolute_paths: bool=False, clean_format: bool=True, find_files: bool=True, 
+find_dirs: bool=True) -> Str_List:
     '''
     start_paths: str or list of str
         Path of a directory from which search for files begins. If start_path
@@ -251,7 +253,7 @@ def find(start_paths, name_search_str=None, recursive=True, \
     return path_lst
 
 
-def grep_dir_recursively(search_str, dir_path, read_mode, case_sensitive):
+def grep_dir_recursively(search_str: str, dir_path: str, read_mode: str, case_sensitive: bool) -> Tuple[Str_List, Int_List, Str_List]:
     from python_utils.file_utils import grep_single_file
     found_lines = []
     found_line_nums = []
@@ -264,17 +266,14 @@ def grep_dir_recursively(search_str, dir_path, read_mode, case_sensitive):
             found_fpaths += found_result_fpaths
     return found_lines, found_line_nums, found_fpaths
     
-def write_row_to_csv(path, one_dimensional_list, mode='a', delimiter=','):
-    if type(one_dimensional_list) != list:
-        raise TypeError('row is not type list, cannot write to csv. type(one_dimensional_list):', \
-              type(one_dimensional_list), 'one_dimensional_list:', one_dimensional_list)
+def write_row_to_csv(path: str, one_dimensional_list: Sequence, mode: str='a', delimiter: str=',') -> None:
     if 'b' == mode[-1]:
         mode = mode[:-1]
     with open(path, mode, newline='') as f:
         csvWriter = csv.writer(f, delimiter=delimiter)
         csvWriter.writerow(one_dimensional_list)
         
-def write_rows_to_csv(path, two_Dimensional_list, mode='w', delimiter=','):
+def write_rows_to_csv(path: str, two_Dimensional_list: Sequence, mode: str='w', delimiter: str=',') -> None:
     if 'b' == mode[-1]:
         mode = mode[:-1]
     f = open(path, mode, newline='')

@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
+from type_utils import Union, Any
 
-
-def insert_df_into_df(inserted_df, df):
+def insert_df_into_df(inserted_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
     '''
     inserted_df: pd.DataFrame or pd.Series
         Must have the same columns as df and compatible index types. e.g.
@@ -31,5 +31,5 @@ def insert_df_into_df(inserted_df, df):
     return df
 
 
-def get_value_from_row(df, col_name, row_value, value_col_name):
+def get_value_from_row(df: pd.DataFrame, col_name: str, row_value: Any, value_col_name: Union[str, int]) -> Any:
     return df[df[col_name] == row_value][value_col_name].values[0]

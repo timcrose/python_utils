@@ -7,10 +7,10 @@ Created on Sun Apr  1 16:29:48 2018
 
 import math, random
 import numpy as np
-from decimal import Decimal, ROUND_HALF_UP, ROUND_HALF_DOWN
+from decimal import Decimal, ROUND_HALF_UP
+from type_utils import Vector, Scalar, Scalar_Arr, Scalar_Arr, Int, Matrix, Union, Tuple
 
-
-def remove_outliers(arr, num_std_devs=2):
+def remove_outliers(arr: Vector, num_std_devs: Scalar=2) -> Vector:
     if len(arr) < 2:
         return arr
     mean = np.mean(arr)
@@ -18,7 +18,7 @@ def remove_outliers(arr, num_std_devs=2):
     return arr[np.abs(arr - mean) <= num_std_devs * std_dev]
 
 
-def arccos2(vector, value):
+def arccos2(vector: Vector, value: Scalar) -> Scalar:
     if vector[0] == 0:
         if vector[1] >= 0:
             return 0
@@ -27,7 +27,7 @@ def arccos2(vector, value):
     return -np.sign(vector[0]) * np.arccos(value)
 
 
-def arctan_0(vector):
+def arctan_0(vector: Vector) -> Scalar:
     x = float(vector[0])
     y = float(vector[1])
     if x == 0:
@@ -38,7 +38,7 @@ def arctan_0(vector):
         return np.arctan(y / x) + (np.pi / 2.0)
 
 
-def rotate_about_z_axis(vector, theta):
+def rotate_about_z_axis(vector: Vector, theta: Scalar) -> Scalar_Arr:
     return np.dot(np.array([
 [np.cos(theta), -np.sin(theta), 0],
 [np.sin(theta), np.cos(theta), 0],
@@ -46,7 +46,7 @@ def rotate_about_z_axis(vector, theta):
 ]), vector)
 
 
-def rotate_about_x_axis(vector, theta):
+def rotate_about_x_axis(vector: Vector, theta: Scalar) -> Scalar_Arr:
     return np.dot(np.array([
 [1, 0, 0],
 [0, np.cos(theta), -np.sin(theta)],
@@ -54,7 +54,7 @@ def rotate_about_x_axis(vector, theta):
 ]), vector)
 
 
-def rotate_point_about_axis_by_angle(point, axis, theta):
+def rotate_point_about_axis_by_angle(point: Vector, axis: Vector, theta: Scalar) -> Scalar_Arr:
     ux = axis[0]
     uy = axis[1]
     uz = axis[2]
@@ -75,13 +75,13 @@ def rotate_point_about_axis_by_angle(point, axis, theta):
     return np.dot(rotation_matrix, point)
 
 
-def rotate_about_z_then_x(vector, gamma, phi):
+def rotate_about_z_then_x(vector: Vector, gamma: Scalar, phi: Scalar) -> Scalar_Arr:
     gamma_rotated_vector = rotate_about_z_axis(vector, gamma)
     rotated_x_axis = np.array([np.cos(gamma), np.sin(gamma), 0.0])
     return rotate_point_about_axis_by_angle(gamma_rotated_vector, rotated_x_axis, phi)
 
 
-def calculate_continuous_differences_2d(angle_arr):
+def calculate_continuous_differences_2d(angle_arr: Scalar_Arr) -> Scalar_Arr:
     '''
     Parameters
     ----------
@@ -118,7 +118,7 @@ def calculate_continuous_differences_2d(angle_arr):
     return dangle_arr[1:]
 
 
-def find_intersection(plane_normal,plane_point,ray_direction,ray_point):
+def find_intersection(plane_normal: Scalar_Arr, plane_point: Scalar_Arr, ray_direction: Scalar_Arr, ray_point: Scalar_Arr) -> Scalar_Arr:
     '''
     This function finds the intersection of a line and a plane.
     
@@ -132,17 +132,17 @@ def find_intersection(plane_normal,plane_point,ray_direction,ray_point):
     Psi: The intersection point of the line and the plane, or None.
     '''
     epsilon=1e-6
-    ndotu = plane_normal.dot(ray_direction)
+    ndotu = np.dot(plane_normal, ray_direction)
     if abs(ndotu) < epsilon:
         # no intersection or line is within plane
         return None
     w = ray_point - plane_point
-    si = -plane_normal.dot(w) / ndotu
+    si = -np.dot(plane_normal, w) / ndotu
     Psi = w + si * ray_direction + plane_point #intersections
     return Psi
 
 
-def round_nearest_multiple(number, a, direction='standard'):
+def round_nearest_multiple(number: Scalar, a: Scalar, direction: str='standard') -> Scalar:
     '''
     Rounds number to nearest multiple of a. The returned number will have the
      same precision as a.
@@ -155,11 +155,11 @@ def round_nearest_multiple(number, a, direction='standard'):
         return round(number, -int(math.floor(math.log10(a))))
 
 
-def mean(lst):
+def mean(lst: Vector) -> Scalar:
     return sum(lst) / float(len(lst))
 
 
-def round(number, num_decimal_places, leave_int=False):
+def round(number: Scalar, num_decimal_places: Int, leave_int: bool=False) -> Scalar:
     '''
     number: number
         number to round
@@ -182,11 +182,11 @@ def round(number, num_decimal_places, leave_int=False):
     return float(Decimal(str(number)).quantize(Decimal(decimal_str), rounding=ROUND_HALF_UP))
 
 
-def randrange_float(start, stop, step, num_decimal_places=4):
+def randrange_float(start: Int, stop: Int, step: Int, num_decimal_places: Int=4) -> Scalar:
     return round(random.randint(0, int((stop - start) / step)) * step + start, num_decimal_places)
 
 
-def round_matrix(matrix, num_decimal_places, leave_int=False):
+def round_matrix(matrix: Matrix, num_decimal_places: Int, leave_int: bool=False) -> Matrix:
     '''
     matrix: list of lists of numbers or 2D array of numbers
         matrix to round its elements
@@ -207,7 +207,7 @@ def round_matrix(matrix, num_decimal_places, leave_int=False):
     return matrix
 
 
-def round_lst(lst, num_decimal_places, leave_int=False):
+def round_lst(lst: Vector, num_decimal_places: Int, leave_int: bool=False) -> Vector:
     '''
     lst: list of numbers or 1D array of numbers
         list to round its elements
@@ -231,7 +231,7 @@ def round_lst(lst, num_decimal_places, leave_int=False):
         raise ValueError('So far only list and 1d numpy arrays are compatible.')
 
 
-def r_sqrd(x, y):
+def r_sqrd(x: Scalar_Arr, y: Scalar_Arr) -> Scalar:
     '''
     x: np.array, shape (,n)
         x coordinates of (x,y) points
@@ -258,11 +258,12 @@ def r_sqrd(x, y):
     return 1.0 - residuals.dot(residuals) / tot.dot(tot)
 
     
-def poly1d_fit(x, y, degree, get_r_sqrd=True, get_local_maximums=False, 
-        get_local_mininums=False, get_global_maximum=False, 
-        get_global_minimum=False, global_extrema_method='data_or_curve', 
-        tol_num_digits=8, x_tol_for_duplicates=None, 
-        y_tol_factor_for_extraneous_extrema=None):
+def poly1d_fit(x: Scalar_Arr, y: Scalar_Arr, degree: Int, 
+        get_r_sqrd: bool=True, get_local_maximums: bool=False, 
+        get_local_mininums: bool=False, get_global_maximum: bool=False, 
+        get_global_minimum: bool=False, global_extrema_method: str='data_or_curve', 
+        tol_num_digits: Int=8, x_tol_for_duplicates: Union[Scalar, str, None]=None, 
+        y_tol_factor_for_extraneous_extrema: Union[Scalar, None]=None):
     '''
     x: 1D list or np.array
         List of x axis (independent variable) values which correspond in order 
@@ -643,7 +644,7 @@ def poly1d_fit(x, y, degree, get_r_sqrd=True, get_local_maximums=False,
     return fit
 
 
-def update_mean(prev_mean, prev_n, new_data):
+def update_mean(prev_mean: Scalar, prev_n: Int, new_data: Union[Scalar, Vector]) -> Scalar:
     '''
     Update the mean without having the previous data, only the previous
     mean and number of data points used to calculate the previous mean.
@@ -676,7 +677,8 @@ def update_mean(prev_mean, prev_n, new_data):
     return (prev_mean * prev_n + sum(new_data)) / (prev_n + len(new_data))
 
 
-def update_mean_std_n(prev_mean, prev_std, prev_n, new_data, ddof=0, num_decimal_places=7):
+def update_mean_std_n(prev_mean: Scalar, prev_std: Scalar, prev_n: Int, 
+new_data: Union[Scalar, Vector], ddof: Int=0, num_decimal_places: Int=7) -> Tuple[Scalar, Scalar, Int]:
     '''
     Update the standard deviation without having the previous data, only the previous
     standard deviation, mean, and number of data points used to calculate the 
@@ -764,7 +766,7 @@ def update_mean_std_n(prev_mean, prev_std, prev_n, new_data, ddof=0, num_decimal
     return updated_mean, updated_std, updated_n
     
 
-def update_mean_with_stats(prev_mean, prev_n, new_mean, new_n):
+def update_mean_with_stats(prev_mean: Scalar, prev_n: Int, new_mean: Scalar, new_n: Int) -> Scalar:
     '''
     Update the mean without having the previous data, only the previous
     mean and number of data points used to calculate the previous mean.
@@ -798,7 +800,8 @@ def update_mean_with_stats(prev_mean, prev_n, new_mean, new_n):
     return (prev_mean * prev_n + new_mean * new_n) / (prev_n + new_n)
 
 
-def update_mean_std_n_with_stats(prev_mean, prev_std, prev_n, new_mean, new_std, new_n, ddof=0, num_decimal_places=7):
+def update_mean_std_n_with_stats(prev_mean: Scalar, prev_std: Scalar, prev_n: Int,
+new_mean: Scalar, new_std: Scalar, new_n: Int, ddof: Int=0, num_decimal_places: Int=7) -> Tuple[Scalar, Scalar, Int]:
     '''
     Update the standard deviation without having the previous data, only the previous
     standard deviation, mean, and number of data points used to calculate the 
@@ -853,8 +856,8 @@ def update_mean_std_n_with_stats(prev_mean, prev_std, prev_n, new_mean, new_std,
     if ddof > 1:
         raise ValueError('ddof must be 0 or 1')
     if np.any(np.isnan([prev_mean, prev_std, prev_n, new_mean, new_std, new_n, ddof, num_decimal_places])):
-        print('prev_n', prev_n, 'prev_mean', prev_mean, 'prev_std', prev_std, 'prev_sum_of_squares', prev_sum_of_squares)
-        print('new_n', new_n, 'new_mean', new_mean, 'new_std', new_std, 'new_sum_of_squares', new_sum_of_squares)
+        print('prev_n', prev_n, 'prev_mean', prev_mean, 'prev_std', prev_std)
+        print('new_n', new_n, 'new_mean', new_mean, 'new_std', new_std)
         raise ValueError('Nan in input arguments.')
     if prev_n == 0:
         if new_n == 0:
