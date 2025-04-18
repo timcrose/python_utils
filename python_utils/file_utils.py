@@ -30,8 +30,14 @@ from type_utils import Any, Scalar, List, Tuple, Str_List, Int_List, Union, IO, 
 
 def write_pickle(fpath: str, data: Any, err_message: str='Failed to write pickle', fail_gracefully: bool=False, verbose: bool=False) -> None:
     '''
+    pickle a python object and store in a .pickle file with path fpath using 
+    pickle.dump().
+    
+    Parameters
+    ----------
     fpath: str
         file path of pickle file (must include .pickle ext).
+        
     data: python obj
         object to be pickled
 
@@ -47,25 +53,31 @@ def write_pickle(fpath: str, data: Any, err_message: str='Failed to write pickle
         True: Print informative statements, if any.
         False: Do not print any non-crucial statements
 
-    Return: None
+    Returns
+    -------
+    None
 
-    Purpose: pickle a python object and store in
-         a .pickle file with path fpath using pickle.dump().
-
-    Notes: The .pickle file will be loadable by pickle.load()
+    Notes
+    -----
+    1. The .pickle file will be loadable by pickle.load()
     '''
     # Write the python object data to the file with path fpath
     try:
         with open(fpath, "wb") as pickle_out:
             dill.dump(data, pickle_out)
     except Exception as e:
-        err_utils.handle_error(e=e, err_message=err_message, fail_gracefully=\
-            fail_gracefully, verbose=verbose)
+        err_utils.handle_error(e=e, err_message=err_message, 
+fail_gracefully=fail_gracefully, verbose=verbose)
+        
         return None
 
 
 def read_pickle(fpath: str, fail_gracefully: bool=True, verbose: bool=False) -> Any:
     '''
+    Unpickle a python object that was stored in a .pickle file.
+    
+    Parameters
+    ----------
     fpath: str
         file path of pickle file (must include .pickle extension)
 
@@ -81,21 +93,20 @@ def read_pickle(fpath: str, fail_gracefully: bool=True, verbose: bool=False) -> 
         True: Print informative statements, if any.
         False: Do not print any non-crucial statements
 
-    Return:
-        if the file is not able to be unpickled: return None
-        else: return the unpickled object
+    Returns
+    -------
+    pickle_contents: Any
+        The unpickled object. None if could not unpickle it.
 
-    Purpose: unpickle a python object that was stored in
-         a .pickle file.
-
-    Notes:
-        The .pickle file must be loadable by pickle.load()
+    Notes
+    -----
+    1. The .pickle file must be loadable by pickle.load()
     '''
 
     # Make sure fpath has a .pickle extension
     if not fpath.endswith('.pickle'):
-        err_message = 'file path must end with .pickle. fpath: ' + fpath
-        err_utils.handle_error(err_message=err_message, 
+        err_utils.handle_error(
+err_message='file path must end with .pickle. fpath: ' + fpath, 
 fail_gracefully=fail_gracefully, verbose=verbose)
 
         return None
@@ -106,15 +117,40 @@ fail_gracefully=fail_gracefully, verbose=verbose)
             python_obj = dill.load(f)
         return python_obj
     except Exception as e:
-        err_message = 'Could not load the file at fpath =  ' + fpath
-        err_utils.handle_error(e=e, err_message=err_message, 
+        err_utils.handle_error(e=e, 
+err_message='Could not load the file at fpath =  ' + fpath, 
 fail_gracefully=fail_gracefully, verbose=verbose)
 
         return None
 
 
-def get_lines_of_file(fname: str, mode: str='r', timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> List[str]:
-    f = open_file(fname, mode='r', timeout=timeout, interval_delay=interval_delay)
+def get_lines_of_file(fpath: str, mode: str='r', timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> Str_List:
+    '''
+    Read a file and return its contents in the form of a list of strings where
+    each string is a line in the file.
+
+    Parameters
+    ----------
+    fpath: str
+        File path to read.
+    
+    mode: str
+        File open mode. 'r' for read and 'rb' for read bytes.
+        
+    timeout: Scalar
+        How long in seconds to wait for the file open command to work before 
+        giving up and throwing an error.
+        
+    interval_delay: Scalar
+        How long in seconds to wait in between attempts to open the file.
+
+    Returns
+    -------
+    lines: Str_List
+        The file contents in the form of a list of strings where each string is
+        a line in the file.
+    '''
+    f = open_file(fpath, mode=mode, timeout=timeout, interval_delay=interval_delay)
     lines = f.readlines()
     f.close()
     return lines
@@ -199,6 +235,30 @@ def grep(search_str: str, paths: Union[str, Str_List], read_mode: str='r', fail_
 
 
 def open_file(fpath: str, mode: str='r', timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> IO:
+    '''
+    The first attempt to open a file might be thwarted by some other process
+    currently using the file. So, try multiple times.
+
+    Parameters
+    ----------
+    fpath: str
+        File path to read.
+    
+    mode: str
+        File open mode. 'r' for read and 'rb' for read bytes.
+        
+    timeout: Scalar
+        How long in seconds to wait for the file open command to work before 
+        giving up and throwing an error.
+        
+    interval_delay: Scalar
+        How long in seconds to wait in between attempts to open the file.
+
+    Returns
+    -------
+    f: IO
+        File handle of the opened file.
+    '''
     start_time = time.perf_counter()
     exception = None
     while time.perf_counter() - start_time < timeout:
