@@ -4,12 +4,17 @@ Created on Tue Apr  8 13:48:24 2025
 
 @author: timcr
 """
-import numpy as np
-NDArray = np.typing.NDArray
-ArrayLike = np.typing.ArrayLike
+
 from typing import NewType, Union, List, Tuple, Sequence, Any, Optional, IO, \
-SupportsIndex, Callable, Dict, TypeVar, Iterable, Dict, Type
+SupportsIndex, Callable, Dict, TypeVar, Iterable, Type
 from numbers import Number
+import numpy as np
+try:
+    NDArray = np.typing.NDArray
+    ArrayLike = np.typing.ArrayLike
+except:
+    NDArray = Sequence
+    ArrayLike = Sequence
 
 Scalar = NewType('Scalar', Union[np.floating, np.integer, Number])
 Int = NewType('Int', Union[int, np.integer])
