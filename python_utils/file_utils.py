@@ -412,7 +412,7 @@ def rms(paths: Union[str, Str_List], fail_if_cant_rm: bool=False, verbose: bool=
 
 
 def read_csv(path: str, mode: str='r', map_type: Optional[str]=None, 
-dtype: Optional[Callable[Any]]=None, timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> Union[List[List[Any]], NDArray[NDArray[Any]]]:
+dtype: Optional[Callable[[Any], Any]]=None, timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> Union[List[List[Any]], NDArray[NDArray[Any]]]:
     red_csv = []
 
     if not os.path.exists(path):
@@ -614,7 +614,7 @@ def get_new_task(lockfile_fpath: str, incomplete_tasks_fpath: str) -> Optional[I
     return task_id
 
 
-def add_completed_task(lockfile_fpath: str, complete_tasks_fpath: str, task_id: int, intermediate_func: Optional[Callable[Any]]=None, intermediate_args: Sequence[Any]=[]):
+def add_completed_task(lockfile_fpath: str, complete_tasks_fpath: str, task_id: int, intermediate_func: Optional[Callable[[Any], Any]]=None, intermediate_args: Sequence[Any]=[]):
     # Use lockfile for complete tasks to let me know this task_id was complete.
     lockfile_message = str(int(time_utils.gtime() * 10000))
     lock_file(lockfile_fpath, lockfile_message=lockfile_message, total_timeout=1000, time_frame=0.1, go_ahead_if_out_of_time=False)

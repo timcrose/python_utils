@@ -44,7 +44,7 @@ def print_iterable(iterable: Iterable, idx: SupportsIndex, arg_name: str, verbos
             print('type(' + arg_name + '[0])', type(arg_name[0]))
 
 
-def print_np_stat(arr: NDArray, arg_name: str, stat: Callable[NDArray, Int]) -> None:
+def print_np_stat(arr: NDArray, arg_name: str, stat: Callable[[NDArray], Int]) -> None:
     '''
     arr: np.ndarray, shape: any
         Print a statistic for this array along each available axis.
@@ -93,7 +93,7 @@ def print_arr_stats(arr: NDArray, arg_name: str) -> None:
         print_np_stat(stat, arr, arg_name)
 
 
-def trose_logging_decorator(wrapped_func: Callable) -> Any:
+def trose_logging_decorator(wrapped_func: Callable[[Any], Any]) -> Any:
     '''
     wrapped_func: function
         trose_logging_decorator is intended to be a decorator for wrapped_func.
@@ -288,7 +288,7 @@ fail_gracefully: bool=False, verbose: bool=False) -> None:
                 raise Exception('e', e, 'is not a valid subclass of BaseException')
                 
                 
-def try_assign(func: Callable, *input_params: Any, fail_value: Any=None, 
+def try_assign(func: Callable[[Any], Any], *input_params: Any, fail_value: Any=None, 
 err_message: Any='Alert; could call func with given input parameters', 
 fail_gracefully: bool=False, verbose: bool=False) -> Any:
 
