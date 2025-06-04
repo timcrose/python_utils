@@ -388,7 +388,7 @@ window_title: Optional[str]=None, use_image_name_wildcard: bool=True,
 use_process_id_wildcard: bool=True, use_session_name_wildcard: bool=True, 
 use_session_num_wildcard: bool=True, use_status_wildcard: bool=True, 
 use_user_name_wildcard: bool=True, 
-use_window_title_wildcard: bool=True) -> pd.Dataframe:
+use_window_title_wildcard: bool=True) -> pd.DataFrame:
     '''
     Parameters
     ----------
