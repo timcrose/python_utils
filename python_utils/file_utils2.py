@@ -48,7 +48,7 @@ def output_from_rank(message_args, rank, mode='ab', output_fpath_prefix='output_
           print >> f, message_args
 
 def grep_dir_recursively(search_str, dir_path, read_mode):
-    from file_utils import grep_single_file
+    from python_utils.file_utils import grep_single_file
     found_lines = []
     found_line_nums = []
     found_fpaths = []

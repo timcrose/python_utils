@@ -10,7 +10,7 @@ from glob import glob
 import shutil
 from python_utils import time_utils
 from copy import deepcopy
-from type_utils import Any, Int, Str_List, Union, Optional, Tuple, Int_List, Sequence
+from python_utils.type_utils import Any, Int, Str_List, Union, Optional, Tuple, Int_List, Sequence
 
 def output_from_rank(message_args: Any, rank: Int, mode: str='a', output_fpath_prefix: str='output_from_world_rank_') -> None:
     output_fpath = output_fpath_prefix + str(rank)

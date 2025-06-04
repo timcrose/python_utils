@@ -1,5 +1,5 @@
-import list_utils
-from type_utils import Optional, Tuple, Str_List, List, Int_List
+from python_utils import list_utils
+from python_utils.type_utils import Optional, Tuple, Str_List, List, Int_List
 # Edit this list of characters as desired.
 BASE_ALPH = tuple("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`~!@#$%^&*()-=[]\;',./_+{}|:<>?")
 BASE_DICT = dict((c, v) for v, c in enumerate(BASE_ALPH))

@@ -9,7 +9,7 @@ import time
 import pandas as pd
 import pywinauto as pwa
 from pprint import pprint
-from type_utils import Optional, Scalar, List
+from python_utils.type_utils import Optional, Scalar, List
 
 
 def convert_mem_to_int(windows_tasks_df: pd.DataFrame) -> None:

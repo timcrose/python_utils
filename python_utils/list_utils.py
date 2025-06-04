@@ -5,7 +5,7 @@ import numpy as np
 from copy import deepcopy
 import itertools, collections
 from scipy.spatial import distance
-from type_utils import NDArray, T, U, Callable, Scalar_Arr, Sequence, Any, \
+from python_utils.type_utils import NDArray, T, U, Callable, Scalar_Arr, Sequence, Any, \
 Int_List, Int, Int_Vector, Vector, Optional, Iterable, Dict, Scalar, Type
 
 

@@ -5,7 +5,7 @@ Created on Fri Jul 30 10:28:26 2021
 @author: trose
 """
 from configparser import ConfigParser
-from type_utils import Callable, T, U, Optional, Any
+from python_utils.type_utils import Callable, T, U, Optional, Any
 
 
 class Instruct(ConfigParser):

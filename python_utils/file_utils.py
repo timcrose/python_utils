@@ -26,7 +26,7 @@ elif python_version >= 2.0:
 else:
     print('python version below 2.0, potential for some unsupported ' +
         'functions')
-from type_utils import Any, Scalar, List, Tuple, Str_List, Int_List, Union, IO, Callable, NDArray, Optional, Dict, Int, Sequence, Scalar_List
+from python_utils.type_utils import Any, Scalar, List, Tuple, Str_List, Int_List, Union, IO, Callable, NDArray, Optional, Dict, Int, Sequence, Scalar_List
 
 def write_pickle(fpath: str, data: Any, err_message: str='Failed to write pickle', fail_gracefully: bool=False, verbose: bool=False) -> None:
     '''

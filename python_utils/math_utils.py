@@ -8,7 +8,7 @@ Created on Sun Apr  1 16:29:48 2018
 import math, random
 import numpy as np
 from decimal import Decimal, ROUND_HALF_UP
-from type_utils import Vector, Scalar, Scalar_Arr, Scalar_Arr, Int, Matrix, Union, Tuple
+from python_utils.type_utils import Vector, Scalar, Scalar_Arr, Scalar_Arr, Int, Matrix, Union, Tuple
 
 def remove_outliers(arr: Vector, num_std_devs: Scalar=2) -> Vector:
     if len(arr) < 2:

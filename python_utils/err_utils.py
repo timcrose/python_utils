@@ -3,7 +3,7 @@ import numpy as np
 from numbers import Number
 from inspect import getframeinfo, stack, isclass
 from python_utils import math_utils
-from type_utils import Iterable, SupportsIndex, Int, NDArray, Callable, Any, \
+from python_utils.type_utils import Iterable, SupportsIndex, Int, NDArray, Callable, Any, \
 Type, Optional, Scalar, Vector
 
 def print_iterable(iterable: Iterable, idx: SupportsIndex, arg_name: str, verbosity_level: Int) -> None:

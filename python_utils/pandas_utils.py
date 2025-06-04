@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from type_utils import Union, Any
+from python_utils.type_utils import Union, Any
 
 def insert_df_into_df(inserted_df: pd.DataFrame, df: pd.DataFrame) -> pd.DataFrame:
     '''

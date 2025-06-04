@@ -1,6 +1,6 @@
 from python_utils import file_utils, time_utils
 import socket, hashlib
-from type_utils import Int, Scalar, Sequence, Any
+from python_utils.type_utils import Int, Scalar, Sequence, Any
 
 
 def root_print(rank: Int, *print_message: Any) -> None:

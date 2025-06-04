@@ -13,7 +13,7 @@ from time import ctime
 from time import localtime
 from time import strftime
 from time import strptime
-from type_utils import Optional, Int, Scalar, Union
+from python_utils.type_utils import Optional, Int, Scalar, Union
 
 
 def get_timestamp_from_date_str(date_str: str, date_fmt: str='%m/%d/%Y, %I:%M:%S %p') -> float:
