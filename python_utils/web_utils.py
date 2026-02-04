@@ -7,7 +7,7 @@ Created on Tue Feb  6 19:26:59 2018
 from subprocess import Popen, PIPE, STDOUT
 import requests
 
-def connected_to_internet(hostname: str) -> bool:
+def connected_to_internet(hostname):
     toping = Popen(['ping', hostname, '-c', '1'], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
     output = toping.communicate()[0]
     hostalive = toping.returncode
@@ -17,14 +17,14 @@ def connected_to_internet(hostname: str) -> bool:
     else:
         return False
 
-def wait_until_connected_to_internet() -> None:
+def wait_until_connected_to_internet():
     #zinc will only be reachable if the internet is on for both tin and lead
     hostname = 'zinc.materials.cmu.edu'
     while not connected_to_internet(hostname):
         pass
 
 
-def online() -> bool:
+def online():
     url = 'http://www.google.com/'
     timeout = 5
     try:

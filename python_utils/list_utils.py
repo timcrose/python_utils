@@ -1,17 +1,14 @@
 import re, random, functools, operator
-#import itertools
 from python_utils import math_utils, err_utils
 import numpy as np
 from copy import deepcopy
 import itertools, collections
 from scipy.spatial import distance
-from python_utils.type_utils import NDArray, T, U, Callable, Scalar_Arr, Sequence, Any, \
-Int_List, Int, Int_Vector, Vector, Optional, Iterable, Dict, Scalar, Type
 
 
-def build_grid(grid_info: Scalar_Arr, include_endpoint: bool=False, 
-allow_to_spill_over: bool=False, return_np: bool=False, 
-dtype: Callable[[T], U]=int) -> NDArray[U]:
+def build_grid(grid_info, include_endpoint=False, 
+allow_to_spill_over=False, return_np=False, 
+dtype=int):
     '''
     grid_info: np.array shape (n_dim, 3)
         n_dims is the number of dimensions you want grid points for
@@ -47,8 +44,8 @@ grid_info[i,2]).tolist() for i in range(grid_info.shape[0])]
     return grid
 
 
-def build_grid_traversal(grid_info: Scalar_Arr, include_endpoint: bool=False, 
-allow_to_spill_over: bool=False, dtype: Callable[[T], U]=int) -> NDArray[U]:
+def build_grid_traversal(grid_info, include_endpoint=False, 
+allow_to_spill_over=False, dtype=int):
     '''
     grid_info: np.array shape (n_dim, 3)
         n_dims is the number of dimensions you want grid points for
@@ -96,7 +93,7 @@ allow_to_spill_over: bool=False, dtype: Callable[[T], U]=int) -> NDArray[U]:
     return grid[visited_idxs]
     
 
-def sorted_nicely(l: Sequence) -> Sequence:
+def sorted_nicely(l):
     """ Sorts the given iterable in the way that is expected.
  
     Required arguments:
@@ -109,7 +106,7 @@ def sorted_nicely(l: Sequence) -> Sequence:
     return sorted(l, key = alphanum_key)
 
 
-def indices(seq: Sequence, val: Any) -> Int_List:
+def indices(seq, val):
     '''
     seq: Sequence
         list to search
@@ -124,7 +121,7 @@ def indices(seq: Sequence, val: Any) -> Int_List:
     '''
     return [i for i, item in enumerate(seq) if item == val]
 
-def random_index(lst: Sequence) -> int:
+def random_index(lst):
     '''
     lst: list
         List
@@ -138,7 +135,7 @@ def random_index(lst: Sequence) -> int:
         raise ValueError('lst has len 0.')
     return random.randint(0, len(lst) - 1)
 
-def random_value(lst: Sequence) -> Any:
+def random_value(lst):
     '''
     lst: list
         List
@@ -152,7 +149,7 @@ def random_value(lst: Sequence) -> Any:
         raise ValueError('lst has len 0.')
     return lst[random_index(lst)]
 
-def flatten_list(lst: Sequence) -> Sequence:
+def flatten_list(lst):
     '''
     lst: list
         List of lists
@@ -164,10 +161,10 @@ def flatten_list(lst: Sequence) -> Sequence:
     #return list(itertools.chain.from_iterable(lst))
     return functools.reduce(operator.iadd, lst, [])
 
-def sort_list_by_col(lst: list, col: Int, reverse: bool=False) -> list:
+def sort_list_by_col(lst, col, reverse=False):
     return sorted(lst, key=lambda l:l[col], reverse=reverse)
 
-def multi_insert(lst: list, indices_to_insert: Int_Vector, data_to_insert: Optional[Sequence]=None, direction: str='left') -> list:
+def multi_insert(lst, indices_to_insert, data_to_insert=None, direction='left'):
     '''
     lst: list
         parent list which will get items inserted into it by this function
@@ -206,7 +203,7 @@ def multi_insert(lst: list, indices_to_insert: Int_Vector, data_to_insert: Optio
     return lst
 
 
-def multi_put(lst: list, indices_to_put: Int_Vector, data_to_insert: Sequence, append_if_beyond_length: bool=False) -> list:
+def multi_put(lst, indices_to_put, data_to_insert, append_if_beyond_length=False):
     '''
     lst: list
         parent list which will get items inserted into it by this function
@@ -254,7 +251,7 @@ def multi_put(lst: list, indices_to_put: Int_Vector, data_to_insert: Sequence, a
     return lst
 
 
-def fill_missing_data_evenly(lst: list, expected_len: Int, direction: str='left') -> list:
+def fill_missing_data_evenly(lst, expected_len, direction='left'):
     '''
     lst: list
         parent list which will get items inserted into it by this function
@@ -288,7 +285,7 @@ def fill_missing_data_evenly(lst: list, expected_len: Int, direction: str='left'
     return filled_list
 
 
-def multi_delete(lst: list, indices_to_delete: Iterable[Int], axis: Int=0) -> list:
+def multi_delete(lst, indices_to_delete, axis=0):
     '''
     lst: iterable
         list or iterable
@@ -320,7 +317,7 @@ def multi_delete(lst: list, indices_to_delete: Iterable[Int], axis: Int=0) -> li
     return lst
 
 
-def randomsubset_not_in_other_set(n_choose: Int, subset_to_avoid: Iterable[Int], total_set):
+def randomsubset_not_in_other_set(n_choose, subset_to_avoid, total_set):
     '''
     n_choose: int
         number of indices to choose
@@ -347,7 +344,7 @@ def randomsubset_not_in_other_set(n_choose: Int, subset_to_avoid: Iterable[Int],
     return np.array(random.sample(valid_set_to_choose_from, n_choose))
 
 
-def sort_by_col(data: NDArray, col: Int, reverse: bool=False) -> NDArray:
+def sort_by_col(data, col, reverse=False):
     '''
     data: numpy array, shape (at least one column)
         array to sort
@@ -370,7 +367,7 @@ def sort_by_col(data: NDArray, col: Int, reverse: bool=False) -> NDArray:
     return sorted_data
 
 
-def get_onehot_contiguous_idxs(onehot_arr: Sequence[Int] , contiguous_len_range: Sequence[Int]=[5,5]) -> NDArray:
+def get_onehot_contiguous_idxs(onehot_arr, contiguous_len_range):
     '''
     Parameters
     ----------
@@ -421,7 +418,7 @@ def get_onehot_contiguous_idxs(onehot_arr: Sequence[Int] , contiguous_len_range:
     return ranges[(range_diffs >= contiguous_len_range[0]) & (range_diffs <= contiguous_len_range[1])]
     
 
-def get_contiguous_values(arr: Sequence, contiguous_len: Int=5) -> list[Dict[str, Any]]:
+def get_contiguous_values(arr, contiguous_len=5):
     '''
     Parameters
     ----------
@@ -465,7 +462,7 @@ def get_contiguous_values(arr: Sequence, contiguous_len: Int=5) -> list[Dict[str
     return contiguous_values
         
 
-def is_contiguous(indices: NDArray, mat_shape: Sequence[Int]) -> bool:
+def is_contiguous(indices, mat_shape):
     '''
     indices: np.array, shape (x,2)
         Matrix of x indices where each index is an int i,j pair corresponding to an element index in a matrix
@@ -503,7 +500,7 @@ def is_contiguous(indices: NDArray, mat_shape: Sequence[Int]) -> bool:
     return True
 
 
-def range_float_incr(lower_bound: Scalar, upper_bound: Scalar, increment_value: Scalar, include_lower_bound: bool=True, include_upper_bound: bool=False) -> list:
+def range_float_incr(lower_bound, upper_bound, increment_value, include_lower_bound=True, include_upper_bound=False):
     '''
     lower_bound: float
         Minimum and first value in returned list if include_lower_bound=True, else lower_bound + increment_value
@@ -547,7 +544,7 @@ def range_float_incr(lower_bound: Scalar, upper_bound: Scalar, increment_value: 
     return lst
 
 
-def split_up_list_evenly(lst: Sequence, num_partitions: Int) -> Sequence:
+def split_up_list_evenly(lst, num_partitions):
     '''
     lst: list or np.array
         Overall list of elements to split up amongst partitions
@@ -579,7 +576,7 @@ def split_up_list_evenly(lst: Sequence, num_partitions: Int) -> Sequence:
     return split_lst
 
 
-def moving_average(arr: Vector, period: Int, dtype: Callable[[T], U]=np.float64) -> NDArray[U]:
+def moving_average(arr, period, dtype=np.float64):
     '''
     arr: 1D np.array
         array of numbers over which to calculate a moving average
@@ -604,7 +601,7 @@ def moving_average(arr: Vector, period: Int, dtype: Callable[[T], U]=np.float64)
     return dtype(ma)
 
 
-def equal_frequency_bins(arr: Vector, nbin: Int) -> Scalar_Arr:
+def equal_frequency_bins(arr, nbin):
     '''
     arr: sortable 1D iterable
         Array of numbers to perform frequency binning on.
@@ -636,7 +633,7 @@ def equal_frequency_bins(arr: Vector, nbin: Int) -> Scalar_Arr:
     return equal_frequency_bin_edges
 
 
-def arrs_to_matrix(*arrs: Any) -> NDArray:
+def arrs_to_matrix(*arrs):
     '''
     Parameters
     ----------
@@ -704,7 +701,7 @@ def arrs_to_matrix(*arrs: Any) -> NDArray:
     return np.array(tuple(zip(*arrs)))
 
 
-def where_mat(condition: bool) -> NDArray:
+def where_mat(condition):
     '''
     Parameters
     ----------
@@ -725,7 +722,7 @@ def where_mat(condition: bool) -> NDArray:
     return arrs_to_matrix(*np.where(condition))
 
 
-def enum(*sequential: Any, **named: Any) -> Type[Any]:
+def enum(*sequential, **named):
     """
     Purpose
     -------

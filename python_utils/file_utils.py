@@ -18,6 +18,7 @@ import platform
 import numpy as np
 import pandas as pd
 from copy import deepcopy
+import socket
 python_version = float(platform.python_version()[:3])
 if python_version >= 3.0:
     from python_utils.file_utils3 import *
@@ -26,9 +27,9 @@ elif python_version >= 2.0:
 else:
     print('python version below 2.0, potential for some unsupported ' +
         'functions')
-from python_utils.type_utils import Any, Scalar, List, Tuple, Str_List, Int_List, Union, IO, Callable, NDArray, Optional, Dict, Int, Sequence, Scalar_List
 
-def write_pickle(fpath: str, data: Any, err_message: str='Failed to write pickle', fail_gracefully: bool=False, verbose: bool=False) -> None:
+
+def write_pickle(fpath, data, err_message='Failed to write pickle', fail_gracefully=False, verbose=False):
     '''
     pickle a python object and store in a .pickle file with path fpath using 
     pickle.dump().
@@ -72,7 +73,7 @@ fail_gracefully=fail_gracefully, verbose=verbose)
         return None
 
 
-def read_pickle(fpath: str, fail_gracefully: bool=True, verbose: bool=False) -> Any:
+def read_pickle(fpath, fail_gracefully=True, verbose=False):
     '''
     Unpickle a python object that was stored in a .pickle file.
     
@@ -124,7 +125,7 @@ fail_gracefully=fail_gracefully, verbose=verbose)
         return None
 
 
-def get_lines_of_file(fpath: str, mode: str='r', timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> Str_List:
+def get_lines_of_file(fpath, mode='r', timeout=1.5, interval_delay=0.5):
     '''
     Read a file and return its contents in the form of a list of strings where
     each string is a line in the file.
@@ -156,7 +157,7 @@ def get_lines_of_file(fpath: str, mode: str='r', timeout: Scalar=1.5, interval_d
     return lines
 
 
-def grep_single_file(search_str: str, fpath: str, read_mode: str, verbose: bool=False, case_sensitive: bool=True) -> Tuple[Str_List, Int_List, Str_List]:
+def grep_single_file(search_str, fpath, read_mode, verbose=False, case_sensitive=True):
     '''
     if case_sensitive:
         search_str = search_str.lower()
@@ -189,7 +190,7 @@ def grep_single_file(search_str: str, fpath: str, read_mode: str, verbose: bool=
     return found_result, found_result_line_nums, found_result_fpaths
             
 
-def grep_str(search_str: str, path: str, read_mode: str, fail_if_DNE: bool=False, verbose: bool=False, case_sensitive: bool=True) -> Tuple[Str_List, Int_List, Str_List]:
+def grep_str(search_str, path, read_mode, fail_if_DNE=False, verbose=False, case_sensitive=True):
     if type(path) is str:
         if os.path.isdir(path):
             return grep_dir_recursively(search_str, path, read_mode, case_sensitive)
@@ -204,7 +205,7 @@ def grep_str(search_str: str, path: str, read_mode: str, fail_if_DNE: bool=False
         raise FileNotFoundError('path DNE: ', path)
 
 
-def grep(search_str: str, paths: Union[str, Str_List], read_mode: str='r', fail_if_DNE: bool=False, verbose: bool=False, return_line_nums: bool=False, return_fpaths: bool=False, case_sensitive: bool=True) -> Any:
+def grep(search_str, paths, read_mode='r', fail_if_DNE=False, verbose=False, return_line_nums=False, return_fpaths=False, case_sensitive=True):
     found_lines = []
     found_line_nums = []
     found_fpaths = []
@@ -234,7 +235,7 @@ def grep(search_str: str, paths: Union[str, Str_List], read_mode: str='r', fail_
         return found_lines
 
 
-def open_file(fpath: str, mode: str='r', timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> IO:
+def open_file(fpath, mode='r', timeout=1.5, interval_delay=0.5):
     '''
     The first attempt to open a file might be thwarted by some other process
     currently using the file. So, try multiple times.
@@ -275,20 +276,20 @@ def open_file(fpath: str, mode: str='r', timeout: Scalar=1.5, interval_delay: Sc
     return f
 
 
-def read_file(fpath: str, mode: str='r', timeout: Scalar=10, interval_delay: Scalar=1) -> Union[str, bytes]:
+def read_file(fpath, mode='r', timeout=10, interval_delay=1):
     f = open_file(fpath, mode=mode, timeout=timeout, interval_delay=interval_delay)
     file_contents = f.read()
     f.close()
     return file_contents
 
 
-def write_lines_to_file(fpath: str, lines: Str_List, mode: str='w', timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> None:
+def write_lines_to_file(fpath, lines, mode='w', timeout=1.5, interval_delay=0.5):
     f = open_file(fpath, mode=mode, timeout=timeout, interval_delay=interval_delay)
     f.writelines(lines)
     f.close()
 
 
-def mkdir_if_DNE(path: str, fail_gracefully: bool=True) -> None:
+def mkdir_if_DNE(path, fail_gracefully=True):
     if not os.path.isdir(path):
         try:
             os.makedirs(path)
@@ -298,7 +299,7 @@ def mkdir_if_DNE(path: str, fail_gracefully: bool=True) -> None:
             raise e
 
 
-def cp_str_src(src_path: str, dest_dir: str, dest_fname: str, fail_if_cant_rm: bool=False, verbose: bool=True, overwrite: bool=True) -> None:
+def cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=False, verbose=True, overwrite=True):
     if type(src_path) is str:
         src_match_paths = glob(src_path)
         for src_match_path in src_match_paths:
@@ -327,7 +328,7 @@ def cp_str_src(src_path: str, dest_dir: str, dest_fname: str, fail_if_cant_rm: b
         raise Exception('needed str input. src_path: ', src_path)
 
 
-def cp(src_paths_list: Union[str, Str_List], dest_dir: str, dest_fname: str='', fail_if_cant_rm: bool=False, verbose: bool=True, overwrite: bool=True) -> None:
+def cp(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=True, overwrite=True):
     if type(dest_dir) is not str:
         raise ValueError('destination path must be a str. dest_dir: ', dest_dir)
     mkdir_if_DNE(dest_dir)
@@ -343,7 +344,7 @@ def cp(src_paths_list: Union[str, Str_List], dest_dir: str, dest_fname: str='', 
         cp_str_src(src_path, dest_dir, dest_fname, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose, overwrite=overwrite)
 
 
-def rm_str(path: str, fail_if_cant_rm: bool=False, verbose: bool=True) -> None:
+def rm_str(path, fail_if_cant_rm=False, verbose=True):
     if os.path.isdir(path):
         try:
             shutil.rmtree(path)
@@ -366,7 +367,7 @@ def rm_str(path: str, fail_if_cant_rm: bool=False, verbose: bool=True) -> None:
         print('path ' + path + ' DNE. Skipping.')
 
 
-def rm(paths: Union[str, Str_List], fail_if_cant_rm: bool=False, verbose: bool=True) -> None:
+def rm(paths, fail_if_cant_rm=False, verbose=True):
     if type(paths) is str:
         if '*' in paths:
             paths = glob(paths)
@@ -387,7 +388,7 @@ def rm(paths: Union[str, Str_List], fail_if_cant_rm: bool=False, verbose: bool=T
             rm_str(path, fail_if_cant_rm=fail_if_cant_rm, verbose=verbose)
             
 
-def mv(src_paths_list: Union[str, Str_List], dest_dir: str, dest_fname: str='', fail_if_cant_rm: bool=False, verbose: bool=True, overwrite: bool=True) -> None:
+def mv(src_paths_list, dest_dir, dest_fname='', fail_if_cant_rm=False, verbose=True, overwrite=True):
     if type(dest_dir) is not str:
         raise IOError('Cannot move, destination path needs to be of type str. dest_dir:', dest_dir)
     #copy then delete. This is the most robust because other methods aren't faster if src and dest are on a different disk. If
@@ -396,7 +397,7 @@ def mv(src_paths_list: Union[str, Str_List], dest_dir: str, dest_fname: str='', 
     rm(src_paths_list, fail_if_cant_rm=False, verbose=True)
 
 
-def rms(paths: Union[str, Str_List], fail_if_cant_rm: bool=False, verbose: bool=True) -> None:
+def rms(paths, fail_if_cant_rm=False, verbose=True):
     '''
     safe rm
     '''
@@ -411,8 +412,8 @@ def rms(paths: Union[str, Str_List], fail_if_cant_rm: bool=False, verbose: bool=
         raise ValueError('paths must be a string of one path or an iterable of paths which are strings. paths:', paths)
 
 
-def read_csv(path: str, mode: str='r', map_type: Optional[str]=None, 
-dtype: Optional[Callable[[Any], Any]]=None, timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> Union[List[List[Any]], NDArray[NDArray[Any]]]:
+def read_csv(path, mode='r', map_type=None, 
+dtype=None, timeout=1.5, interval_delay=0.5):
     red_csv = []
 
     if not os.path.exists(path):
@@ -432,7 +433,7 @@ dtype: Optional[Callable[[Any], Any]]=None, timeout: Scalar=1.5, interval_delay:
     return red_csv
 
     
-def write_dct_to_json(path: str, dct: Dict[Any, Any], indent: Int=4, dump_type: str='dump', timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> None:
+def write_dct_to_json(path, dct, indent=4, dump_type='dump', timeout=1.5, interval_delay=0.5):
     if path[-5:] != '.json':
         raise Exception('path must have .json extension. path:', path)
 
@@ -447,7 +448,7 @@ def write_dct_to_json(path: str, dct: Dict[Any, Any], indent: Int=4, dump_type: 
     f.close()
     
 
-def get_dct_from_json(path: str, load_type: str='load', timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> Dict[Any, Any]:
+def get_dct_from_json(path, load_type='load', timeout=1.5, interval_delay=0.5):
     if path[-5:] != '.json':
         raise Exception('path must have .json extension. path:', path)
     f = open_file(path, mode='r', timeout=timeout, interval_delay=interval_delay)
@@ -459,7 +460,7 @@ def get_dct_from_json(path: str, load_type: str='load', timeout: Scalar=1.5, int
     return dct
 
 
-def write_to_file(fpath: str, str_to_write: str, mode: str='w', timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> None:
+def write_to_file(fpath, str_to_write, mode='w', timeout=1.5, interval_delay=0.5):
     '''
     fpath: str
         full path to file (relative or absolute)
@@ -473,9 +474,42 @@ def write_to_file(fpath: str, str_to_write: str, mode: str='w', timeout: Scalar=
     f = open_file(fpath, mode=mode, timeout=timeout, interval_delay=interval_delay)
     f.write(str_to_write)
     f.close()
+    
+    
+def write_intention_lock_file(dirname, name_search_str, hostname=socket.gethostname(), wait_to_write_file=True, timeout=100, total_timeout=1000, fail_gracefully=True):
+    if not name_search_str.endswith('.lock'):
+        raise Exception('Lock file path search string must end with .lock')
+    start_time = time.perf_counter()
+    lock_file_fpath = os.path.join(dirname, hostname + '_locked_files_matching_' + name_search_str)
+    intention_fpaths = find(dirname, name_search_str, find_dirs=False)
+    while len([intention_fpath for intention_fpath in intention_fpaths if not intention_fpath.startswith(hostname)]) > 0 and time.perf_counter() - start_time < total_timeout:
+        loop_start_time = time.perf_counter()
+        intention_fpaths = find(dirname, name_search_str, find_dirs=False)
+        while len([intention_fpath for intention_fpath in intention_fpaths if not intention_fpath.startswith(hostname)]) > 0 and time.perf_counter() - start_time < total_timeout and time.perf_counter() - loop_start_time < timeout:
+            if not wait_to_write_file:
+                if fail_gracefully:
+                    return False
+                else:
+                    raise Exception('The lock file already existed and so cannot continue.')
+            time.sleep(0.05)
+            intention_fpaths = find(dirname, name_search_str, find_dirs=False)
+        if time.perf_counter() - loop_start_time >= timeout:
+            if fail_gracefully:
+                return False
+            else:
+                raise Exception('Ran out of time to wait for the lock file to vanish.')
+        write_to_file(lock_file_fpath, 'locked at' + str(time.perf_counter()))
+        time.sleep(0.1)
+        intention_fpaths = find(dirname, name_search_str, find_dirs=False)
+    if time.perf_counter() - start_time < total_timeout:
+        return lock_file_fpath
+    elif fail_gracefully:
+        return False
+    else:
+        raise Exception(f'After {total_timeout} seconds, the lock file was still there.')
 
 
-def lock_file(fpath: str, lockfile_message: str='locked', total_timeout: Scalar=100000, time_frame: Scalar=0.05, go_ahead_if_out_of_time: bool=False, timeout: Scalar=1.5, interval_delay: Scalar=0.5) -> None:
+def lock_file(fpath, lockfile_message='locked', total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False, timeout=1.5, interval_delay=0.5):
     start_time = time_utils.gtime()
     wait_for_file_to_vanish(fpath, total_timeout=total_timeout, time_frame=time_frame,  go_ahead_if_out_of_time=go_ahead_if_out_of_time)
     read_lockfile_message = 'Nonelkjlkj'
@@ -493,7 +527,7 @@ def lock_file(fpath: str, lockfile_message: str='locked', total_timeout: Scalar=
             raise Exception('Took longer than total_timeout =', total_timeout, 'seconds to acquire lock file.')
     
 
-def wait_for_file_to_vanish(fpath: str, total_timeout: Scalar=100000, time_frame: Scalar=0.05, go_ahead_if_out_of_time: bool=False) -> None:
+def wait_for_file_to_vanish(fpath, total_timeout=100000, time_frame=0.05, go_ahead_if_out_of_time=False):
     start_time = time_utils.gtime()
     if time_frame == 0:
         while os.path.exists(fpath):
@@ -508,7 +542,7 @@ def wait_for_file_to_vanish(fpath: str, total_timeout: Scalar=100000, time_frame
             raise Exception('file ' + fpath + ' still exists after a total of ' + str(total_timeout) + ' seconds')
         
 
-def wait_for_file_to_exist(fpath: str, total_timeout: Scalar=100000, time_frame: Scalar=0.05) -> None:
+def wait_for_file_to_exist(fpath, total_timeout=100000, time_frame=0.05):
     '''
     fpath: str
         path to file to check
@@ -525,7 +559,7 @@ def wait_for_file_to_exist(fpath: str, total_timeout: Scalar=100000, time_frame:
         time_utils.sleep(time_frame)
 
 
-def wait_for_file_to_be_written_to(fpath: str, total_timeout: Scalar=100000, time_frame: Scalar=0.05) -> None:
+def wait_for_file_to_be_written_to(fpath, total_timeout=100000, time_frame=0.05):
     '''
     fpath: str
         path to file to check
@@ -553,7 +587,7 @@ def wait_for_file_to_be_written_to(fpath: str, total_timeout: Scalar=100000, tim
             raise Exception('file ' + fpath + ' still not done being written to after a total of ' + str(total_timeout) + ' seconds')
 
 
-def wait_for_file_to_exist_and_written_to(fpath: str, total_timeout: Scalar=100000, time_frame: Scalar=0.05) -> None:
+def wait_for_file_to_exist_and_written_to(fpath, total_timeout=100000, time_frame=0.05):
     '''
     fpath: str
         path to file to check
@@ -568,7 +602,7 @@ def wait_for_file_to_exist_and_written_to(fpath: str, total_timeout: Scalar=1000
     wait_for_file_to_be_written_to(fpath, total_timeout=total_timeout, time_frame=time_frame)
 
 
-def rm_file_with_message(fpath: str, message: str) -> None:
+def rm_file_with_message(fpath, message):
     while os.path.exists(fpath):
         try:
             with open(fpath) as f:
@@ -582,7 +616,7 @@ def rm_file_with_message(fpath: str, message: str) -> None:
         time_utils.sleep(0.1)
 
 
-def read_fragile_csv(fpath: str) -> pd.DataFrame:
+def read_fragile_csv(fpath):
     wait_for_file_to_be_written_to(fpath, total_timeout=1000, time_frame=0.1)
     read_success = False
     start_time = time_utils.gtime()
@@ -597,7 +631,7 @@ def read_fragile_csv(fpath: str) -> pd.DataFrame:
     return df
 
 
-def get_new_task(lockfile_fpath: str, incomplete_tasks_fpath: str) -> Optional[Int]:
+def get_new_task(lockfile_fpath, incomplete_tasks_fpath):
     lockfile_message = str(int(time_utils.gtime() * 10000))
     lock_file(lockfile_fpath, lockfile_message=lockfile_message, total_timeout=1000, time_frame=0.1, go_ahead_if_out_of_time=False)
     tasks_df = read_fragile_csv(incomplete_tasks_fpath)
@@ -614,7 +648,7 @@ def get_new_task(lockfile_fpath: str, incomplete_tasks_fpath: str) -> Optional[I
     return task_id
 
 
-def add_completed_task(lockfile_fpath: str, complete_tasks_fpath: str, task_id: int, intermediate_func: Optional[Callable[[Any], Any]]=None, intermediate_args: Sequence[Any]=[]):
+def add_completed_task(lockfile_fpath, complete_tasks_fpath, task_id, intermediate_func=None, intermediate_args=[]):
     # Use lockfile for complete tasks to let me know this task_id was complete.
     lockfile_message = str(int(time_utils.gtime() * 10000))
     lock_file(lockfile_fpath, lockfile_message=lockfile_message, total_timeout=1000, time_frame=0.1, go_ahead_if_out_of_time=False)
@@ -631,7 +665,7 @@ def add_completed_task(lockfile_fpath: str, complete_tasks_fpath: str, task_id: 
     rm_file_with_message(lockfile_fpath, lockfile_message)
     
     
-def fname_from_fpath(fpath: str, include_ext: bool=False) -> str:
+def fname_from_fpath(fpath, include_ext=False):
     '''
     fpath: str
         path to file
@@ -649,11 +683,11 @@ def fname_from_fpath(fpath: str, include_ext: bool=False) -> str:
     return os.path.splitext(basename)[0]
 
 
-def replace_text_in_file(fpath: str, search_str: str, 
-replacement_str: Optional[str]=None, replacement_line: Optional[str]=None, 
-num_of_occurrences: Int=-1, search_from_top_to_bottom: bool=True, 
-percent_range: Optional[Scalar_List]=None, line_range: Optional[List[Int]]=None, 
-overwrite: bool=False) -> None:
+def replace_text_in_file(fpath, search_str, 
+replacement_str=None, replacement_line=None, 
+num_of_occurrences=-1, search_from_top_to_bottom=True, 
+percent_range=None, line_range=None, 
+overwrite=False):
     '''
     fpath: str
         file path to search and do the replacing on
@@ -763,7 +797,7 @@ overwrite: bool=False) -> None:
     write_lines_to_file(fpath, lines, mode='w')
 
 
-def concatenate_files(flist: Sequence[str], new_fpath: str, write_concatenated_file: bool=True, return_lines: bool=False) -> Optional[Str_List]:
+def concatenate_files(flist, new_fpath, write_concatenated_file=True, return_lines=False):
     '''
     flist: non-string iterable
         list of files to concatenate
@@ -791,7 +825,7 @@ def concatenate_files(flist: Sequence[str], new_fpath: str, write_concatenated_f
         return all_lines
 
 
-def safe_np_load(npy_fpath: str, total_timeout: Scalar=10000, time_frame: Scalar=0.05, verbose: bool=False, check_file_done_being_written_to: bool=True) -> NDArray:
+def safe_np_load(npy_fpath, total_timeout=10000, time_frame=0.05, verbose=False, check_file_done_being_written_to=True):
     '''
     npy_fpath: str
         Path to file that is loadable by np.load()
@@ -834,7 +868,7 @@ def safe_np_load(npy_fpath: str, total_timeout: Scalar=10000, time_frame: Scalar
     raise TimeoutError('total_timeout was reached in save_np_load')
 
 
-def format_path_cleanly(path: str) -> str:
+def format_path_cleanly(path):
     '''
     path: str
         Path of file or directory.
@@ -888,7 +922,7 @@ def format_path_cleanly(path: str) -> str:
     return path
 
 
-def format_all_paths_cleanly(path_lst: Str_List) -> Str_List:
+def format_all_paths_cleanly(path_lst):
     '''
     path_lst: list of str
         List of paths.
@@ -905,7 +939,7 @@ def format_all_paths_cleanly(path_lst: Str_List) -> Str_List:
     return [format_path_cleanly(path) for path in path_lst]
 
 
-def write_h5_file(h5_fpath: str, data: NDArray, attrs_dct: dict={}, dset_name: Optional[str]=None, overwrite: bool=True, fail_if_already_exists: bool=False, verbose: bool=False, include_write_check: bool=False) -> None:
+def write_h5_file(h5_fpath, data, attrs_dct={}, dset_name=None, overwrite=True, fail_if_already_exists=False, verbose=False, include_write_check=False):
     '''
     h5_fpath: str
         Path to .h5 output file
@@ -961,11 +995,11 @@ def write_h5_file(h5_fpath: str, data: NDArray, attrs_dct: dict={}, dset_name: O
             hf.attrs['writing_complete'] = True
 
 
-def read_h5_file(h5_fpath: str, row_start_idx: Int=0, 
-row_end_idx: Optional[Int]=None, col_start_idx: Int=0, 
-col_end_idx: Optional[Int]=None, dset_name: Optional[str]=None, 
-return_data: bool=True, return_attrs: bool=True, query_write_check: bool=False,
-fail_gracefully: bool=False, verbose: bool=False) -> NDArray:
+def read_h5_file(h5_fpath, row_start_idx=0, 
+row_end_idx=None, col_start_idx=0, 
+col_end_idx=None, dset_name=None, 
+return_data=True, return_attrs=True, query_write_check=False,
+fail_gracefully=False, verbose=False):
     '''
     h5_fpath: str
         Path to .h5 file to read
@@ -1061,7 +1095,7 @@ fail_gracefully: bool=False, verbose: bool=False) -> NDArray:
                 return False, False
 
 
-def grep_found_in_files(search_str: str, fpaths: Union[str, Str_List]) -> Tuple[Str_List, Str_List]:
+def grep_found_in_files(search_str, fpaths):
     '''
     search_str: str
         If this string is found in an fpath, append fpath to list of files that the search string was found.
@@ -1084,7 +1118,7 @@ def grep_found_in_files(search_str: str, fpaths: Union[str, Str_List]) -> Tuple[
     return list(fpaths_containing_search_str), list(fpaths_not_containing_search_str)
 
 
-def get_dir_size(dir_path: str, recursive: bool=True, lowmem: bool=False, fail_if_DNE: bool=False) -> Int:
+def get_dir_size(dir_path, recursive=True, lowmem=False, fail_if_DNE=False):
     fpaths = find(dir_path, '*', find_dirs=False, 
             recursive=recursive)
     

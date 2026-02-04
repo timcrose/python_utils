@@ -7,10 +7,295 @@ Created on Sun Apr  1 16:29:48 2018
 
 import math, random
 import numpy as np
+from scipy.stats import norm
+from scipy.optimize import brentq
 from decimal import Decimal, ROUND_HALF_UP
-from python_utils.type_utils import Vector, Scalar, Scalar_Arr, Scalar_Arr, Int, Matrix, Union, Tuple
 
-def remove_outliers(arr: Vector, num_std_devs: Scalar=2) -> Vector:
+
+def prepare_means_stds_weights(
+    means, 
+    stds,
+    weights, 
+    already_normalized_weights=True
+):
+    """
+    Ensure means, stds, and weights are properly shaped and that the weights
+    are normalized. This is usually done in preparation for mixing Gaussian
+    distributions to get the mixed PDF value at a given location, x, or, to get
+    the mixed CDF value at the upper integration limit, t.
+
+    Parameters
+    ----------
+    means: Vector
+        These are the means (μᵢ) of the Gaussian distributions you want to mix.
+        
+    stds: Vector
+        These are the standard deviations (σᵢ) of the Gaussian distributions 
+        you want to mix.
+        
+    weights: Vector
+        These are the weights (wᵢ) of the Gaussian distributions you want to mix.
+        If they don't already sum to 1, set already_normalized_weights to False
+        which will make this function automatically normalize them to sum to 1.
+        
+    already_normalized_weights: bool
+        True: Assert weights.sum() == 1
+        False: Normalize weights to sum to 1.
+
+    Returns
+    -------
+    means, stds, weights
+    """
+    n = len(means)
+    means = np.asarray(means, dtype=float)
+    stds = np.asarray(stds, dtype=float)
+    weights = np.asarray(weights, dtype=float)
+    if already_normalized_weights:
+        if not np.allclose(weights.sum(), 1, atol=1e-7):
+            raise ValueError('Weights sum should be normalized but arent. weights.sum():', weights.sum())
+    else:
+        weights = weights / weights.sum()
+    if n == 0 or not (means.shape == stds.shape == weights.shape):
+        raise ValueError('Invalid shape found. means.shape', means.shape, 'stds.shape', stds.shape, 'weights.shape', weights.shape)
+    return means[:, None], stds[:, None], weights
+
+
+def get_mixed_gaussian_pdf_values(
+    x,
+    means, 
+    stds,
+    weights, 
+    already_normalized_weights=True
+):
+    """
+    Evalute the probability-density function of a Gaussian mixture at value(s) of x.
+
+    Parameters
+    ----------
+    x: Union[Scalar, Vector]
+        Where to evaluate the mixed PDF at. If x is a Scalar, then the PDF value
+        will be returned as a scalar. If instead, x is a Vector, then an 
+        ndarray will be returned with each element being the PDF value gotten
+        when inputting the corresponding element in x.
+
+    means: Vector
+        These are the means (μᵢ) of the Gaussian distributions you want to mix.
+        
+    stds: Vector
+        These are the standard deviations (σᵢ) of the Gaussian distributions 
+        you want to mix.
+        
+    weights: Vector
+        These are the weights (wᵢ) of the Gaussian distributions you want to mix.
+        If they don't already sum to 1, set already_normalized_weights to False
+        which will make this function automatically normalize them to sum to 1.
+        
+    already_normalized_weights: bool
+        True: Assert weights.sum() == 1
+        False: Normalize weights to sum to 1.
+        
+    Returns
+    -------
+    float or ndarray
+        ``f_mix(x) = Σ wᵢ · 𝒩(x | μᵢ, σᵢ²)`` evaluated element-wise.
+
+    Examples
+    --------
+    >>> means  = [0.0,  2.0,  4.0]
+    >>> stds = [1.0,  0.5,  2.0]
+    >>> weights  = [0.3,  0.4,  0.3]
+    >>> get_mixed_gaussian_pdf_values(0.0, means, stds, weights)
+    0.12788839
+    >>> xs = np.linspace(-2, 2, 5)
+    >>> get_mixed_gaussian_pdf_values(xs, means, stds, weights)
+    array([0.01686207 0.07522047 0.12788839 0.13521163 0.37164672])
+    """
+    means, stds, weights = prepare_means_stds_weights(means, stds, weights, 
+already_normalized_weights=already_normalized_weights)
+    
+    if hasattr(x, '__iter__'):
+        x_arr = np.asarray(x, dtype=float)
+        return np.dot(weights, norm.pdf(x_arr, means, stds))
+    else:
+        return np.dot(weights, norm.pdf(x, means, stds))[0]
+
+
+def get_mixed_gaussian_cdf_values(
+    t,
+    means, 
+    stds,
+    weights, 
+    already_normalized_weights=True
+):
+    """
+    Cumulative-distribution function value at t of the weighted mixture of Gaussians 
+    entailed by the given means and stds (or for each value of t if t is a
+    Vector).
+
+    Computes the analytic integral  
+    ``F_mix(t) = ∫_{-∞}^{t} f_mix(x) dx = Σ wᵢ · Φ((t-μᵢ)/σᵢ)``,
+    where *Φ* is the standard normal CDF. Note that linearity of the integral
+    function over addition means that the CDF of the mixture is just the
+    sum of the CDFs.
+
+    Parameters
+    ----------
+    t: Union[Scalar, Vector]
+        Upper integration limit(s). If t is a Scalar, then the CDF value
+        will be returned as a scalar. If instead, t is a Vector, then an 
+        ndarray will be returned with each element being the CDF value gotten
+        when inputting the corresponding element in t.
+
+    means: Vector
+        These are the means (μᵢ) of the Gaussian distributions you want to mix.
+        
+    stds: Vector
+        These are the standard deviations (σᵢ) of the Gaussian distributions 
+        you want to mix.
+        
+    weights: Vector
+        These are the weights (wᵢ) of the Gaussian distributions you want to mix.
+        If they don't already sum to 1, set already_normalized_weights to False
+        which will make this function automatically normalize them to sum to 1.
+        
+    already_normalized_weights: bool
+        True: Assert weights.sum() == 1
+        False: Normalize weights to sum to 1.
+
+    Returns
+    -------
+    float or ndarray
+        Mixture CDF evaluated element-wise at *t*.
+
+    Examples
+    --------
+    >>> mmeans  = [0.0, 2.0, 4.0]
+    >>> stds = [1.0, 0.5, 2.0]
+    >>> weights  = [0.3, 0.4, 0.3]
+    >>> get_mixed_gaussian_cdf_values(1.0, means, stds, weights)
+    0.28154654
+    >>> get_mixed_gaussian_cdf_values([-1, 0, 1], means, stds, weights)
+    array([0.04945948 0.15683771 0.28154564])
+    """
+    means, stds, weights = prepare_means_stds_weights(means, stds, weights, 
+already_normalized_weights=already_normalized_weights)
+    
+    if hasattr(t, '__iter__'):
+        t_arr = np.asarray(t, dtype=float)
+        return np.dot(weights, norm.cdf(t_arr, means, stds))
+    else:
+        return np.dot(weights, norm.cdf(t, means, stds))[0]
+    
+    
+def get_mixed_gaussian_ppf_values(
+    prob,
+    means,
+    stds,
+    weights,
+    already_normalized_weights=True,
+    tol=1e-8,
+):
+    """
+    Percent point function (inverse CDF) for a Gaussian mixture.
+
+    This function finds the threshold(s) t such that the cumulative distribution 
+    of the Gaussian mixture equals the specified probability, i.e.,
+    
+        get_mixed_gaussian_cdf_values(t, means, stds, weights) = prob.
+
+    The input probability can be a scalar or an array-like object. If an array-like 
+    of probabilities is provided, the function returns an ndarray of threshold values 
+    with one inverse CDF value per probability. A scalar input probability will 
+    cause this function to output a scalar float.
+
+    Parameters
+    ----------
+    prob : Union[Scalar, Vector]
+        Desired cumulative probability (or probabilities). Each value must lie 
+        in the interval (0, 1) exclusive. A scalar yields a float output, while an
+        array-like input returns an ndarray of the same shape.
+        
+    means: Vector
+        These are the means (μᵢ) of the Gaussian distributions you want to mix.
+        
+    stds: Vector
+        These are the standard deviations (σᵢ) of the Gaussian distributions 
+        you want to mix.
+        
+    weights: Vector
+        These are the weights (wᵢ) of the Gaussian distributions you want to mix.
+        If they don't already sum to 1, set already_normalized_weights to False
+        which will make this function automatically normalize them to sum to 1.
+        
+    already_normalized_weights: bool
+        True: Assert weights.sum() == 1
+        False: Normalize weights to sum to 1.
+        
+    tol : float
+        Tolerance for the Brent's method root-finding algorithm (default is 1e-8).
+
+    Returns
+    -------
+    float or ndarray
+         The threshold value(s) t such that the mixture CDF at t equals the specified 
+         probability value(s). Scalar input returns a float, and array-like input returns 
+         an ndarray.
+
+    Raises
+    ------
+    ValueError
+         If any probability is not in (0, 1) or if means, stds, and weights do not have 
+         identical shapes.
+
+    Notes
+    -----
+    The Gaussian mixture CDF is given by:
+    
+        F(t) = Σ wᵢ · norm.cdf(t, μᵢ, σᵢ)
+    
+    and this function numerically inverts that relationship for a given cumulative area.
+
+    Examples
+    --------
+    >>> means = [0.0, 2.0, 4.0]
+    >>> stds = [1.0, 0.5, 2.0]
+    >>> weights = [0.3, 0.4, 0.3]
+    >>> get_mixed_gaussian_ppf_values(0.5, means, stds, weights)
+    1.889796824693636  # a float corresponding to 50th percentile
+    >>> get_mixed_gaussian_ppf_values([0.25, 0.5, 0.75], means, stds, weights)
+    array([t1, t2, t3])  # an array of threshold values for the 25th, 50th, and 75th percentiles
+    array([0.74900243 1.88979682 2.7361815 ])
+    """
+    means, stds, weights = prepare_means_stds_weights(means, stds, weights, 
+already_normalized_weights=already_normalized_weights)
+
+    def _mixture_ppf_scalar(prob_scalar: float) -> float:
+        if not (0 < prob_scalar < 1):
+            raise ValueError("Each probability must be between 0 and 1 (exclusive).")
+        
+        def _mix_cdf(t: float) -> float:
+            # Compute the mixture CDF at t as a weighted sum of component CDFs.
+            return np.dot(weights, norm.cdf(t, means, stds)) - prob_scalar
+
+        # Define a heuristic search interval that should capture nearly all the probability mass.
+        lower_bound = np.min(means) - 1e5 * np.max(stds)
+        upper_bound = np.max(means) + 1e5 * np.max(stds)
+
+        # Find the root of _mix_cdf(t) = 0 using Brent's method.
+        t_val = brentq(_mix_cdf, lower_bound, upper_bound, xtol=tol)
+        return t_val
+
+    # Convert prob to a NumPy array to determine if the input is scalar or array-like.
+    p_arr = np.asarray(prob, dtype=float)
+    if p_arr.ndim == 0:
+        return _mixture_ppf_scalar(float(p_arr))
+    else:
+        # Vectorize the scalar inverse CDF for array-like inputs.
+        vec_mixture_ppf = np.vectorize(_mixture_ppf_scalar)
+        return vec_mixture_ppf(p_arr)
+
+
+def remove_outliers(arr, num_std_devs=2):
     if len(arr) < 2:
         return arr
     mean = np.mean(arr)
@@ -18,7 +303,7 @@ def remove_outliers(arr: Vector, num_std_devs: Scalar=2) -> Vector:
     return arr[np.abs(arr - mean) <= num_std_devs * std_dev]
 
 
-def arccos2(vector: Vector, value: Scalar) -> Scalar:
+def arccos2(vector, value):
     if vector[0] == 0:
         if vector[1] >= 0:
             return 0
@@ -27,7 +312,7 @@ def arccos2(vector: Vector, value: Scalar) -> Scalar:
     return -np.sign(vector[0]) * np.arccos(value)
 
 
-def arctan_0(vector: Vector) -> Scalar:
+def arctan_0(vector):
     x = float(vector[0])
     y = float(vector[1])
     if x == 0:
@@ -38,7 +323,7 @@ def arctan_0(vector: Vector) -> Scalar:
         return np.arctan(y / x) + (np.pi / 2.0)
 
 
-def rotate_about_z_axis(vector: Vector, theta: Scalar) -> Scalar_Arr:
+def rotate_about_z_axis(vector, theta):
     return np.dot(np.array([
 [np.cos(theta), -np.sin(theta), 0],
 [np.sin(theta), np.cos(theta), 0],
@@ -46,7 +331,7 @@ def rotate_about_z_axis(vector: Vector, theta: Scalar) -> Scalar_Arr:
 ]), vector)
 
 
-def rotate_about_x_axis(vector: Vector, theta: Scalar) -> Scalar_Arr:
+def rotate_about_x_axis(vector, theta):
     return np.dot(np.array([
 [1, 0, 0],
 [0, np.cos(theta), -np.sin(theta)],
@@ -54,7 +339,7 @@ def rotate_about_x_axis(vector: Vector, theta: Scalar) -> Scalar_Arr:
 ]), vector)
 
 
-def rotate_point_about_axis_by_angle(point: Vector, axis: Vector, theta: Scalar) -> Scalar_Arr:
+def rotate_point_about_axis_by_angle(point, axis, theta):
     ux = axis[0]
     uy = axis[1]
     uz = axis[2]
@@ -75,13 +360,13 @@ def rotate_point_about_axis_by_angle(point: Vector, axis: Vector, theta: Scalar)
     return np.dot(rotation_matrix, point)
 
 
-def rotate_about_z_then_x(vector: Vector, gamma: Scalar, phi: Scalar) -> Scalar_Arr:
+def rotate_about_z_then_x(vector, gamma, phi):
     gamma_rotated_vector = rotate_about_z_axis(vector, gamma)
     rotated_x_axis = np.array([np.cos(gamma), np.sin(gamma), 0.0])
     return rotate_point_about_axis_by_angle(gamma_rotated_vector, rotated_x_axis, phi)
 
 
-def calculate_continuous_differences_2d(angle_arr: Scalar_Arr) -> Scalar_Arr:
+def calculate_continuous_differences_2d(angle_arr):
     '''
     Parameters
     ----------
@@ -118,7 +403,7 @@ def calculate_continuous_differences_2d(angle_arr: Scalar_Arr) -> Scalar_Arr:
     return dangle_arr[1:]
 
 
-def find_intersection(plane_normal: Scalar_Arr, plane_point: Scalar_Arr, ray_direction: Scalar_Arr, ray_point: Scalar_Arr) -> Scalar_Arr:
+def find_intersection(plane_normal, plane_point, ray_direction, ray_point):
     '''
     This function finds the intersection of a line and a plane.
     
@@ -142,7 +427,7 @@ def find_intersection(plane_normal: Scalar_Arr, plane_point: Scalar_Arr, ray_dir
     return Psi
 
 
-def round_nearest_multiple(number: Scalar, a: Scalar, direction: str='standard') -> Scalar:
+def round_nearest_multiple(number, a, direction='standard'):
     '''
     Rounds number to nearest multiple of a. The returned number will have the
      same precision as a.
@@ -155,11 +440,11 @@ def round_nearest_multiple(number: Scalar, a: Scalar, direction: str='standard')
         return round(number, -int(math.floor(math.log10(a))))
 
 
-def mean(lst: Vector) -> Scalar:
+def mean(lst):
     return sum(lst) / float(len(lst))
 
 
-def round(number: Scalar, num_decimal_places: Int, leave_int: bool=False) -> Scalar:
+def round(number, num_decimal_places, leave_int=False):
     '''
     number: number
         number to round
@@ -182,11 +467,11 @@ def round(number: Scalar, num_decimal_places: Int, leave_int: bool=False) -> Sca
     return float(Decimal(str(number)).quantize(Decimal(decimal_str), rounding=ROUND_HALF_UP))
 
 
-def randrange_float(start: Int, stop: Int, step: Int, num_decimal_places: Int=4) -> Scalar:
+def randrange_float(start, stop, step, num_decimal_places=4):
     return round(random.randint(0, int((stop - start) / step)) * step + start, num_decimal_places)
 
 
-def round_matrix(matrix: Matrix, num_decimal_places: Int, leave_int: bool=False) -> Matrix:
+def round_matrix(matrix, num_decimal_places, leave_int=False):
     '''
     matrix: list of lists of numbers or 2D array of numbers
         matrix to round its elements
@@ -207,7 +492,7 @@ def round_matrix(matrix: Matrix, num_decimal_places: Int, leave_int: bool=False)
     return matrix
 
 
-def round_lst(lst: Vector, num_decimal_places: Int, leave_int: bool=False) -> Vector:
+def round_lst(lst, num_decimal_places, leave_int=False):
     '''
     lst: list of numbers or 1D array of numbers
         list to round its elements
@@ -231,7 +516,7 @@ def round_lst(lst: Vector, num_decimal_places: Int, leave_int: bool=False) -> Ve
         raise ValueError('So far only list and 1d numpy arrays are compatible.')
 
 
-def r_sqrd(x: Scalar_Arr, y: Scalar_Arr) -> Scalar:
+def r_sqrd(x, y):
     '''
     x: np.array, shape (,n)
         x coordinates of (x,y) points
@@ -258,12 +543,12 @@ def r_sqrd(x: Scalar_Arr, y: Scalar_Arr) -> Scalar:
     return 1.0 - residuals.dot(residuals) / tot.dot(tot)
 
     
-def poly1d_fit(x: Scalar_Arr, y: Scalar_Arr, degree: Int, 
-        get_r_sqrd: bool=True, get_local_maximums: bool=False, 
-        get_local_mininums: bool=False, get_global_maximum: bool=False, 
-        get_global_minimum: bool=False, global_extrema_method: str='data_or_curve', 
-        tol_num_digits: Int=8, x_tol_for_duplicates: Union[Scalar, str, None]=None, 
-        y_tol_factor_for_extraneous_extrema: Union[Scalar, None]=None):
+def poly1d_fit(x, y, degree, 
+        get_r_sqrd=True, get_local_maximums=False, 
+        get_local_mininums=False, get_global_maximum=False, 
+        get_global_minimum=False, global_extrema_method='data_or_curve', 
+        tol_num_digits=8, x_tol_for_duplicates=None, 
+        y_tol_factor_for_extraneous_extrema=None):
     '''
     x: 1D list or np.array
         List of x axis (independent variable) values which correspond in order 
@@ -644,7 +929,7 @@ def poly1d_fit(x: Scalar_Arr, y: Scalar_Arr, degree: Int,
     return fit
 
 
-def update_mean(prev_mean: Scalar, prev_n: Int, new_data: Union[Scalar, Vector]) -> Scalar:
+def update_mean(prev_mean, prev_n, new_data):
     '''
     Update the mean without having the previous data, only the previous
     mean and number of data points used to calculate the previous mean.
@@ -677,8 +962,8 @@ def update_mean(prev_mean: Scalar, prev_n: Int, new_data: Union[Scalar, Vector])
     return (prev_mean * prev_n + sum(new_data)) / (prev_n + len(new_data))
 
 
-def update_mean_std_n(prev_mean: Scalar, prev_std: Scalar, prev_n: Int, 
-new_data: Union[Scalar, Vector], ddof: Int=0, num_decimal_places: Int=7) -> Tuple[Scalar, Scalar, Int]:
+def update_mean_std_n(prev_mean, prev_std, prev_n, 
+new_data, ddof=0, num_decimal_places=7):
     '''
     Update the standard deviation without having the previous data, only the previous
     standard deviation, mean, and number of data points used to calculate the 
@@ -766,7 +1051,7 @@ new_data: Union[Scalar, Vector], ddof: Int=0, num_decimal_places: Int=7) -> Tupl
     return updated_mean, updated_std, updated_n
     
 
-def update_mean_with_stats(prev_mean: Scalar, prev_n: Int, new_mean: Scalar, new_n: Int) -> Scalar:
+def update_mean_with_stats(prev_mean, prev_n, new_mean, new_n):
     '''
     Update the mean without having the previous data, only the previous
     mean and number of data points used to calculate the previous mean.
@@ -800,8 +1085,8 @@ def update_mean_with_stats(prev_mean: Scalar, prev_n: Int, new_mean: Scalar, new
     return (prev_mean * prev_n + new_mean * new_n) / (prev_n + new_n)
 
 
-def update_mean_std_n_with_stats(prev_mean: Scalar, prev_std: Scalar, prev_n: Int,
-new_mean: Scalar, new_std: Scalar, new_n: Int, ddof: Int=0, num_decimal_places: Int=7) -> Tuple[Scalar, Scalar, Int]:
+def update_mean_std_n_with_stats(prev_mean, prev_std, prev_n,
+new_mean, new_std, new_n, ddof=0, num_decimal_places=7):
     '''
     Update the standard deviation without having the previous data, only the previous
     standard deviation, mean, and number of data points used to calculate the 
@@ -883,3 +1168,7 @@ new_mean: Scalar, new_std: Scalar, new_n: Int, ddof: Int=0, num_decimal_places: 
         raise ValueError('radical is < 0 or nan found')
     updated_std = np.sqrt(radical)
     return updated_mean, updated_std, updated_n
+
+
+if __name__ == '__main__':
+    print(get_mixed_gaussian_ppf_values([0.25, 0.5, 0.75], means=[0, 2, 4], stds=[1, 0.5, 2], weights=[0.3, 0.4, 0.3], already_normalized_weights=True))

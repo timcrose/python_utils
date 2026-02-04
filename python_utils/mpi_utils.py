@@ -1,14 +1,13 @@
 from python_utils import file_utils, time_utils
 import socket, hashlib
-from python_utils.type_utils import Int, Scalar, Sequence, Any
 
 
-def root_print(rank: Int, *print_message: Any) -> None:
+def root_print(rank, *print_message):
    if rank == 0:
       print(print_message)
 
 
-def rank_print(rank_output_path: str, *print_message: Any) -> None:
+def rank_print(rank_output_path, *print_message):
     '''
     rank_output_path: str
         Path to the log file for a single MPI rank.
@@ -25,7 +24,7 @@ def rank_print(rank_output_path: str, *print_message: Any) -> None:
         print(print_message, file=f, flush=True)
 
 
-def parallel_mkdir(rank: Int, dirpath: str, total_timeout: Scalar=1000, time_frame: Scalar=0.05) -> None:
+def parallel_mkdir(rank, dirpath, total_timeout=1000, time_frame=0.05):
     '''
     rank: int
         mpi4py comm rank
@@ -48,7 +47,7 @@ def parallel_mkdir(rank: Int, dirpath: str, total_timeout: Scalar=1000, time_fra
         file_utils.wait_for_file_to_exist_and_written_to(dirpath, total_timeout=total_timeout, time_frame=time_frame)
 
 
-def file_system_barrier(comm) -> None:
+def file_system_barrier(comm):
     '''
     comm: MPI.Comm from mpi4py
         MPI communicator from mpi4py
@@ -70,7 +69,7 @@ def file_system_barrier(comm) -> None:
     else:
         time_utils.sleep(0.4)
 
-def barrier(comm, tag: Int=0, sleep: Scalar=0.01) -> None:
+def barrier(comm, tag=0, sleep=0.01):
     size = comm.Get_size()
     rank = comm.Get_rank()
     mask = 1
@@ -98,7 +97,7 @@ def barrier(comm, tag: Int=0, sleep: Scalar=0.01) -> None:
     '''
 
 
-def split_up_list_evenly(lst: Sequence, rank: Int, size: Int, include_master: bool=True) -> Sequence:
+def split_up_list_evenly(lst, rank, size, include_master=True):
     '''
     lst: list or np.array
         Overall list of elements to split up amongst ranks
@@ -134,7 +133,7 @@ def split_up_list_evenly(lst: Sequence, rank: Int, size: Int, include_master: bo
     return lst
 
 
-def split_by_node(comm, key: str='rank'):
+def split_by_node(comm, key='rank'):
     '''
     Create split MPI communicators from a common communicator, one for each
     node (hostname) in the set of hostnames where the ranks in comm reside.

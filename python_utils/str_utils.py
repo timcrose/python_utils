@@ -1,11 +1,10 @@
 from python_utils import list_utils
-from python_utils.type_utils import Optional, Tuple, Str_List, List, Int_List
 # Edit this list of characters as desired.
 BASE_ALPH = tuple("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`~!@#$%^&*()-=[]\;',./_+{}|:<>?")
 BASE_DICT = dict((c, v) for v, c in enumerate(BASE_ALPH))
 BASE_LEN = len(BASE_ALPH)
 
-def base_encode(string: str, base_dct: Optional[dict]=None) -> int:
+def base_encode(string, base_dct=None):
     '''
     string: str
         String that you want to encode into a number.
@@ -39,7 +38,7 @@ def base_encode(string: str, base_dct: Optional[dict]=None) -> int:
         return num
 
 
-def base_decode(num: int, base_alphabet: Optional[Tuple]=None) -> str:
+def base_decode(num, base_alphabet=None):
     '''
     num: int
         Number that is the encoded version of the string that you want to decode (turn into the string).
@@ -73,7 +72,7 @@ def base_decode(num: int, base_alphabet: Optional[Tuple]=None) -> str:
         return decoded_str
 
 
-def find_nth_occurrence_in_str(input_str: str, search_str: str, n: int, reverse: bool=False, overlapping: int=0) -> int:
+def find_nth_occurrence_in_str(input_str, search_str, n, reverse=False, overlapping=0):
     if reverse:
         match = input_str.rfind(search_str)
         while match >= 0 and n > 0:
@@ -88,14 +87,14 @@ def find_nth_occurrence_in_str(input_str: str, search_str: str, n: int, reverse:
         return match
 
 
-def encode_lst_to_ascii(lst_of_str: Str_List) -> List[bytes]:
+def encode_lst_to_ascii(lst_of_str):
     '''
     lst_of_str: list of str
         List of python strings that you want to encode into an ascii object
 
     Return
     ------
-    lst_of_ascii_str: list of ascii-encoded strings
+    lst_of_ascii_str: list of ascii-encoded strings (bytes)
         List of asci-encoded strings.
 
     Purpose
@@ -111,9 +110,9 @@ def encode_lst_to_ascii(lst_of_str: Str_List) -> List[bytes]:
     return lst_of_ascii_str
 
 
-def decode_lst_of_ascii(lst_of_ascii_str: List[bytes]) -> Str_List:
+def decode_lst_of_ascii(lst_of_ascii_str):
     '''
-    lst_of_ascii_str: list of ascii-encoded strings
+    lst_of_ascii_str: list of ascii-encoded strings (bytes)
         List of ascii-encoded strings.
 
     Return
@@ -130,7 +129,7 @@ def decode_lst_of_ascii(lst_of_ascii_str: List[bytes]) -> Str_List:
     return lst_of_str
 
 
-def str_item_insert(string: str, item: str, i: int, after: bool=True) -> str:
+def str_item_insert(string, item, i, after=True):
     '''
     string: str
         string to operate on
@@ -158,7 +157,7 @@ def str_item_insert(string: str, item: str, i: int, after: bool=True) -> str:
         return string[:i] + item + string[i:]
 
 
-def str_item_assignment(string: str, item: str, i: int) -> str:
+def str_item_assignment(string, item, i):
     '''
     string: str
         string to operate on
@@ -173,7 +172,7 @@ def str_item_assignment(string: str, item: str, i: int) -> str:
     '''
     return string[:i] + item + string[i + 1:] 
 
-def multiple_str_item_assignment(string: str, item_list: Str_List, i_list: Int_List) -> str:
+def multiple_str_item_assignment(string, item_list, i_list):
     '''
     string: str
         string to operate on
@@ -200,7 +199,7 @@ def multiple_str_item_assignment(string: str, item_list: Str_List, i_list: Int_L
     return string
 
 
-def delete_items_from_str_by_idx(string: str, i_list: Int_List) -> str:
+def delete_items_from_str_by_idx(string, i_list):
     '''
     string: str
         string to operate on
@@ -219,9 +218,9 @@ def delete_items_from_str_by_idx(string: str, i_list: Int_List) -> str:
     return modified_str
 
 
-def split_str_with_many_delimiters(string: str, 
-delimiters: Str_List=[' ', '(', ')', '.', ',', '[', ']', '/', '+', '-', '*', '%', '#', ':'], 
-return_delim_indices: bool=False) -> Str_List:
+def split_str_with_many_delimiters(string, 
+delimiters=[' ', '(', ')', '.', ',', '[', ']', '/', '+', '-', '*', '%', '#', ':'], 
+return_delim_indices=False):
     if return_delim_indices:
         delim_indicies = []
         for s, char in enumerate(string):

@@ -3,10 +3,9 @@ import numpy as np
 from numbers import Number
 from inspect import getframeinfo, stack, isclass
 from python_utils import math_utils
-from python_utils.type_utils import Iterable, SupportsIndex, Int, NDArray, Callable, Any, \
-Type, Optional, Scalar, Vector
 
-def print_iterable(iterable: Iterable, idx: SupportsIndex, arg_name: str, verbosity_level: Int) -> None:
+
+def print_iterable(iterable, idx, arg_name, verbosity_level):
     '''
     iterable: iterable
         Object with __iter__ attribute.
@@ -44,7 +43,7 @@ def print_iterable(iterable: Iterable, idx: SupportsIndex, arg_name: str, verbos
             print('type(' + arg_name + '[0])', type(arg_name[0]))
 
 
-def print_np_stat(arr: NDArray, arg_name: str, stat: Callable[[NDArray], Int]) -> None:
+def print_np_stat(arr, arg_name, stat):
     '''
     arr: np.ndarray, shape: any
         Print a statistic for this array along each available axis.
@@ -75,7 +74,7 @@ def print_np_stat(arr: NDArray, arg_name: str, stat: Callable[[NDArray], Int]) -
                 stat(arr, axis=i))
     
 
-def print_arr_stats(arr: NDArray, arg_name: str) -> None:
+def print_arr_stats(arr, arg_name):
     '''
     arr: np.ndarray, shape: any
         Print a statistic for this array along each available axis.
@@ -93,7 +92,7 @@ def print_arr_stats(arr: NDArray, arg_name: str) -> None:
         print_np_stat(stat, arr, arg_name)
 
 
-def trose_logging_decorator(wrapped_func: Callable[[Any], Any]) -> Any:
+def trose_logging_decorator(wrapped_func):
     '''
     wrapped_func: function
         trose_logging_decorator is intended to be a decorator for wrapped_func.
@@ -243,8 +242,8 @@ def trose_logging_decorator(wrapped_func: Callable[[Any], Any]) -> Any:
     return wrapper
 
 
-def handle_error(e: Optional[Type[Exception]]=None, err_message: Any='Alert', 
-fail_gracefully: bool=False, verbose: bool=False) -> None:
+def handle_error(e=None, err_message='Alert', 
+fail_gracefully=False, verbose=False):
 
     '''
     e: Exception or a subclass of Exception or None
@@ -276,21 +275,16 @@ fail_gracefully: bool=False, verbose: bool=False) -> None:
     else:
         if e is None:
             raise Exception(err_message)
+        elif callable(e):
+            raise e(err_message)
         else:
-            if isclass(e):
-                if issubclass(e, BaseException):
-                    raise e(err_message)
-                else:
-                    raise e
-            else:
-                if verbose:
-                    print(err_message)
-                raise Exception('e', e, 'is not a valid subclass of BaseException')
+            print(err_message)
+            raise e
                 
                 
-def try_assign(func: Callable[[Any], Any], *input_params: Any, fail_value: Any=None, 
-err_message: Any='Alert; could call func with given input parameters', 
-fail_gracefully: bool=False, verbose: bool=False) -> Any:
+def try_assign(func, *input_params, fail_value=None, 
+err_message='Alert; could call func with given input parameters', 
+fail_gracefully=False, verbose=False):
 
     '''
     func: callable function
@@ -337,7 +331,7 @@ fail_gracefully: bool=False, verbose: bool=False) -> Any:
         return fail_value
 
 
-def check_type_number(var : Any, fail_gracefully=False, verbose=False) -> bool:
+def check_type_number(var, fail_gracefully=False, verbose=False):
     '''
     var: ?
         The variable you desire to have is a numeric type.
@@ -376,7 +370,7 @@ fail_gracefully=fail_gracefully, verbose=verbose)
         is_number = False
     return is_number
 
-def check_type_file(var: Any, fail_gracefully: bool=False, verbose: bool=False) -> bool:
+def check_type_file(var, fail_gracefully=False, verbose=False):
     '''
     var: ?
         The path of the file you desire to exist.
@@ -408,7 +402,7 @@ def check_type_file(var: Any, fail_gracefully: bool=False, verbose: bool=False) 
     return is_file
 
 
-def check_type_dir(var: Any, fail_gracefully: bool=False, verbose: bool=False) -> bool:
+def check_type_dir(var, fail_gracefully=False, verbose=False):
     '''
     var: ?
         The path of the directory you desire to exist.
@@ -442,7 +436,7 @@ def check_type_dir(var: Any, fail_gracefully: bool=False, verbose: bool=False) -
     return is_dir
 
 
-def check_type_path(var: Any, fail_gracefully: bool=False, verbose: bool=False) -> bool:
+def check_type_path(var, fail_gracefully=False, verbose=False):
     '''
     var: ?
         The path you desire to exist.
@@ -475,7 +469,7 @@ def check_type_path(var: Any, fail_gracefully: bool=False, verbose: bool=False) 
     return is_path
 
 
-def check_type_nonstr_iterable(var: Any, fail_gracefully: bool=False, verbose: bool=False) -> bool:
+def check_type_nonstr_iterable(var, fail_gracefully=False, verbose=False):
     '''
     var: ?
         The variable you desire to be a non-string iterable. An iterable is
@@ -516,7 +510,7 @@ def check_type_nonstr_iterable(var: Any, fail_gracefully: bool=False, verbose: b
     return is_nonstr_iterable
 
 
-def check_type_1D_vec(var: Any, fail_gracefully: bool=False, verbose: bool=False) -> bool:
+def check_type_1D_vec(var, fail_gracefully=False, verbose=False):
     '''
     var: ?
         The variable you desire to have is a 1-dimensional vector. This could
@@ -566,7 +560,7 @@ def check_type_1D_vec(var: Any, fail_gracefully: bool=False, verbose: bool=False
     return is_1D_vec
 
 
-def check_type_1D_arr(var: Any, fail_gracefully: bool=False, verbose: bool=False) -> bool:
+def check_type_1D_arr(var, fail_gracefully=False, verbose=False):
     '''
     var: ?
         The variable you desire to have is a 1-dimensional numpy array. Both
@@ -606,7 +600,7 @@ def check_type_1D_arr(var: Any, fail_gracefully: bool=False, verbose: bool=False
     return is_1D_arr
 
 
-def check_type_1D_numeric_arr(var: Any, fail_gracefully: bool=False, verbose: bool=False) -> bool:
+def check_type_1D_numeric_arr(var, fail_gracefully=False, verbose=False):
     '''
     var: ?
         The variable you desire to have is a 1-dimensional numpy array
@@ -649,8 +643,8 @@ def check_type_1D_numeric_arr(var: Any, fail_gracefully: bool=False, verbose: bo
     return is_1D_numeric_arr
 
 
-def check_type_nonempty_1D_numeric_arr(var: Any, fail_gracefully: bool=False, 
-verbose: bool=False) -> bool:
+def check_type_nonempty_1D_numeric_arr(var, fail_gracefully=False, 
+verbose=False):
     '''
     var: ?
         The variable you desire to have is a non-empty 1-dimensional numpy array
@@ -696,8 +690,8 @@ verbose: bool=False) -> bool:
     return is_nonempty_1D_numeric_arr
 
 
-def check_var_type(var: Any, desired_type: Type, fail_gracefully: bool=False, 
-verbose: bool=False) -> bool:
+def check_var_type(var, desired_type, fail_gracefully=False, 
+verbose=False):
 
     '''
     var: any type
@@ -818,8 +812,8 @@ verbose: bool=False) -> bool:
         return False
 
 
-def check_var_type_lst(var_type_lst: list, fail_gracefully: bool=False, 
-verbose: bool=False) -> bool:
+def check_var_type_lst(var_type_lst, fail_gracefully=False, 
+verbose=False):
 
     '''
     var_type_lst: list of (list of length 2)
@@ -859,8 +853,8 @@ verbose: bool=False) -> bool:
     return passed_checks
 
 
-def check_any_acceptable_type(var: Any, acceptable_type_lst: list, 
-fail_gracefully: bool=False, verbose: bool=False) -> None:
+def check_any_acceptable_type(var, acceptable_type_lst, 
+fail_gracefully=False, verbose=False):
     
     '''
     var: ?
@@ -911,8 +905,8 @@ fail_gracefully: bool=False, verbose: bool=False) -> None:
         fail_gracefully, verbose=verbose)
 
 
-def assert_gracefully(condition: bool, err_message: Any='assertion failed',
-fail_gracefully: bool=False, verbose: bool=False) -> bool:
+def assert_gracefully(condition, err_message='assertion failed',
+fail_gracefully=False, verbose=False):
     
     '''
     condition: bool
@@ -958,9 +952,9 @@ fail_gracefully: bool=False, verbose: bool=False) -> bool:
     return False
 
 
-def numeric_var_in_bounds(var: Scalar, lower_bound: Scalar, upper_bound: Scalar, 
-le: bool=True, ge: bool=True, num_decimal_places: Int=7, 
-fail_gracefully: bool=False, verbose: bool=False) -> bool:
+def numeric_var_in_bounds(var, lower_bound, upper_bound, 
+le=True, ge=True, num_decimal_places=7, 
+fail_gracefully=False, verbose=False):
 
     '''
     var: number
@@ -1027,8 +1021,8 @@ fail_gracefully: bool=False, verbose: bool=False) -> bool:
             return var > lower_bound and var < upper_bound
 
 
-def check_suitable_two_vec_dot_product(vec0: Vector, vec1: Vector, 
-fail_gracefully: bool=False, verbose: bool=False) -> bool:
+def check_suitable_two_vec_dot_product(vec0, vec1, 
+fail_gracefully=False, verbose=False):
 
     '''
     vec0: non-empty 1D numeric array

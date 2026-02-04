@@ -9,10 +9,9 @@ import time
 import pandas as pd
 import pywinauto as pwa
 from pprint import pprint
-from python_utils.type_utils import Optional, Scalar, List
 
 
-def convert_mem_to_int(windows_tasks_df: pd.DataFrame) -> None:
+def convert_mem_to_int(windows_tasks_df):
     '''
     Parameters
     ----------
@@ -46,7 +45,7 @@ def convert_mem_to_int(windows_tasks_df: pd.DataFrame) -> None:
     windows_tasks_df.loc[:, 'mem_usage_numeric'] = mem_usage_numeric
     
     
-def convert_cpu_time_to_secs(windows_tasks_df: pd.DataFrame) -> None:
+def convert_cpu_time_to_secs(windows_tasks_df):
     '''
     Parameters
     ----------
@@ -91,7 +90,7 @@ def convert_cpu_time_to_secs(windows_tasks_df: pd.DataFrame) -> None:
     windows_tasks_df.loc[:, 'cpu_seconds'] = cpu_seconds
     
     
-def wildcard_var_checks(vars_df: pd.DataFrame, task_row: pd.Series) -> bool:
+def wildcard_var_checks(vars_df, task_row):
     '''
     Parameters
     ----------
@@ -170,7 +169,7 @@ def wildcard_var_checks(vars_df: pd.DataFrame, task_row: pd.Series) -> bool:
     return passes
 
 
-def bound_checks(vars_df: pd.DataFrame, task_row: pd.Series) -> bool:
+def bound_checks(vars_df, task_row):
     '''
     Parameters
     ----------
@@ -228,7 +227,7 @@ def bound_checks(vars_df: pd.DataFrame, task_row: pd.Series) -> bool:
     return passes
 
 
-def get_windows_tasks_df() -> pd.DataFrame:
+def get_windows_tasks_df():
     '''
     Parameters
     ----------
@@ -305,7 +304,7 @@ def get_windows_tasks_df() -> pd.DataFrame:
     return windows_tasks_df
 
 
-def get_passing_df(vars_df: pd.DataFrame) -> pd.DataFrame:
+def get_passing_df(vars_df):
     '''
     Parameters
     ----------
@@ -378,17 +377,17 @@ def get_passing_df(vars_df: pd.DataFrame) -> pd.DataFrame:
     return passing_df
 
 
-def get_vars_df(image_name: Optional[str]=None, process_id: Optional[str]=None, 
-session_name: Optional[str]=None, session_num: Optional[str]=None, 
-mem_upper_bound: Optional[Scalar]=None, mem_lower_bound: Optional[Scalar]=None, 
-status: Optional[str]=None, user_name: Optional[str]=None, 
-cpu_time_lower_bound: Optional[Scalar]=None, 
-cpu_time_upper_bound: Optional[Scalar]=None, 
-window_title: Optional[str]=None, use_image_name_wildcard: bool=True, 
-use_process_id_wildcard: bool=True, use_session_name_wildcard: bool=True, 
-use_session_num_wildcard: bool=True, use_status_wildcard: bool=True, 
-use_user_name_wildcard: bool=True, 
-use_window_title_wildcard: bool=True) -> pd.DataFrame:
+def get_vars_df(image_name=None, process_id=None, 
+session_name=None, session_num=None, 
+mem_upper_bound=None, mem_lower_bound=None, 
+status=None, user_name=None, 
+cpu_time_lower_bound=None, 
+cpu_time_upper_bound=None, 
+window_title=None, use_image_name_wildcard=True, 
+use_process_id_wildcard=True, use_session_name_wildcard=True, 
+use_session_num_wildcard=True, use_status_wildcard=True, 
+use_user_name_wildcard=True, 
+use_window_title_wildcard=True):
     '''
     Parameters
     ----------
@@ -557,8 +556,8 @@ use_window_title_wildcard: bool=True) -> pd.DataFrame:
     return vars_df
 
 
-def get_new_tasks_df(vars_df: pd.DataFrame, 
-old_passing_df: pd.DataFrame) -> pd.DataFrame:
+def get_new_tasks_df(vars_df, 
+old_passing_df):
     '''
     Parameters
     ----------
@@ -597,11 +596,11 @@ old_passing_df: pd.DataFrame) -> pd.DataFrame:
     return new_tasks_df
 
 
-def monitor_windows_task(process_id: Optional[str]=None, 
-task_row: Optional[pd.Series]=None, max_mem: Optional[Scalar]=None, 
-max_time: Optional[Scalar]=None, no_not_responding_status: bool=True, 
-kill_task_if_over_mem: bool=True, kill_task_if_over_time: bool=True, 
-kill_task_if_not_responding: bool=True, sleep_delay: Scalar=1) -> str:
+def monitor_windows_task(process_id=None, 
+task_row=None, max_mem=None, 
+max_time=None, no_not_responding_status=True, 
+kill_task_if_over_mem=True, kill_task_if_over_time=True, 
+kill_task_if_not_responding=True, sleep_delay=1):
     
     '''
     Parameters
@@ -703,8 +702,8 @@ kill_task_if_not_responding: bool=True, sleep_delay: Scalar=1) -> str:
         time.sleep(sleep_delay)
         
         
-def get_windows(image_name: str, win_title: str, 
-process_df: Optional[pd.DataFrame]=None) -> List[pwa.application.WindowSpecification]:
+def get_windows(image_name, win_title, 
+process_df=None):
     '''
     image_name: str
         Name of process as found by the "Details" section of Windows Task Manager.
@@ -759,7 +758,7 @@ process_df: Optional[pd.DataFrame]=None) -> List[pwa.application.WindowSpecifica
     return windows
        
         
-def main() -> None:
+def main():
     pd.set_option('display.max_columns', None)
     vars_df = get_vars_df(image_name='python', use_image_name_wildcard=True)
     passing_df = get_passing_df(vars_df)
